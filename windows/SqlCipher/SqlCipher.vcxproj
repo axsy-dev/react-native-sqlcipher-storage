@@ -7,7 +7,7 @@
     <CppWinRTGenerateWindowsMetadata>true</CppWinRTGenerateWindowsMetadata>
     <MinimalCoreWin>true</MinimalCoreWin>
     <ProjectGuid>{ed7f1902-0914-4cba-b163-cf15b6b52291}</ProjectGuid>
-    <ProjectName>SqlCipher</ProjectName>
+    <ProjectName>react-native-sqlcipher-storage-c++</ProjectName>
     <RootNamespace>SqlCipher</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>

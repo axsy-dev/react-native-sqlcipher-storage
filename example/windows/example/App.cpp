@@ -2,11 +2,11 @@
 
 #include "App.h"
 #include "ReactPackageProvider.h"
-
-
+#include "winrt/react_native_sqlcipher_storage.h"
 
 using namespace winrt::example;
 using namespace winrt::example::implementation;
+
 
 /// <summary>
 /// Initializes the singleton application object.  This is the first line of
@@ -34,7 +34,8 @@ App::App() noexcept
 #endif
 
     PackageProviders().Append(make<ReactPackageProvider>()); // Includes all modules in this project
-
+    PackageProviders().Append(react_native_sqlcipher_storage::ReactPackageProvider());
+   
     InitializeComponent();
 
     // This works around a cpp/winrt bug with composable/aggregable types tracked

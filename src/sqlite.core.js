@@ -14,7 +14,7 @@
  */
 
 import base64 from 'base-64';
-import{ NativeModules, Platform } from "react-native";
+import{ NativeModules } from "react-native";
 
 var DB_STATE_INIT, DB_STATE_OPEN, READ_ONLY_REGEX, SQLiteFactory, SQLitePlugin, SQLitePluginTransaction, argsArray, dblocations, newSQLError, nextTick, root, txLocks;
 
@@ -506,27 +506,7 @@ SQLitePluginTransaction.prototype.run = function() {
     console.log("batch execution error: ",error);
   };
 
-  if (Platform.OS === "windows") {
-   function base64Encode(obj) {
-      // Json.NET parses ISO date strings as dates, causing
-      // inserts into string type fields to fail, so encode params
-      // here to be docoded the other side
-      // see https://github.com/axsy-dev/react-app/issues/1412
-      var str = JSON.stringify(obj);
-      var utf8Encoded = encodeURIComponent(str).replace(
-        /%([0-9A-F]{2})/g,
-        (match, p1) => String.fromCharCode("0x" + p1)
-      );
-      return base64.encode(utf8Encoded);
-    }
-    try {
-      tropts = base64Encode(tropts);
-    } catch (e) {
-      console.warn("Failed encoding params: ", e);
-      // debugger;
-      throw e;
-    }
-  }
+
   plugin.exec("backgroundExecuteSqlBatch",{
       dbargs: {
         dbname: this.db.dbname
