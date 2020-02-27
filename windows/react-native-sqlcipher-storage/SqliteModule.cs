@@ -6,6 +6,7 @@ using Windows.Storage;
 using System.IO;
 using System.Text;
 using SQLitePCL;
+using SQLitePCL.Ugly;
 
 namespace react_native_sqlcipher_storage
 {
@@ -13,19 +14,12 @@ namespace react_native_sqlcipher_storage
     static class SqliteException
     {
         public static Exception make(string message) { return new Exception(message); }
-        public static Exception make(int rc) { return new Exception(raw.sqlite3_errstr(rc)); }
+        public static Exception make(int rc) { return new Exception(raw.sqlite3_errstr(rc).utf8_to_string()); }
 
-        public static Exception make(int rc, string message) { return new Exception($"{ message}: {raw.sqlite3_errstr(rc)}"); }
+        public static Exception make(int rc, string message) { return new Exception($"{ message}: {raw.sqlite3_errstr(rc).utf8_to_string()}"); }
 
     }
 
-    static class Init
-    {
-        static Init()
-        {
-            Batteries_V2.Init();
-        }
-    }
 
     class Statement
     {
@@ -152,13 +146,13 @@ namespace react_native_sqlcipher_storage
             var columnCount = ColumnCount;
             for (int i = 0; i < columnCount; ++i)
             {
-                var colName = raw.sqlite3_column_name(statement, i);
+                var colName = raw.sqlite3_column_name(statement, i).utf8_to_string();
                 var colType = ColumnType(i);
 
                 switch (colType)
                 {
                     case raw.SQLITE_TEXT:
-                        result.Add(colName, new JSValue(raw.sqlite3_column_text(statement, i)));
+                        result.Add(colName, new JSValue(raw.sqlite3_column_text(statement, i).utf8_to_string()));
                         break;
                     case raw.SQLITE_INTEGER:
                         result.Add(colName, new JSValue(raw.sqlite3_column_int64(statement, i)));
@@ -187,7 +181,7 @@ namespace react_native_sqlcipher_storage
         {
             get
             {
-                return raw.sqlite3_total_changes(database);
+                return database != null ? raw.sqlite3_total_changes(database) : 0;
             }
         }
 
@@ -195,7 +189,7 @@ namespace react_native_sqlcipher_storage
         {
             get
             {
-                return raw.sqlite3_last_insert_rowid(database);
+                return database != null ?  raw.sqlite3_last_insert_rowid(database) : 0;
             }
         }
 
@@ -209,27 +203,15 @@ namespace react_native_sqlcipher_storage
 
         public Database(string path, string key = null)
         {
-            var res = raw.sqlite3_open(path, out database);
-            if (res != raw.SQLITE_OK)
-            {
-                throw SqliteException.make(res);
-            }
+            
+            database = ugly.open(path);
             if (key != null)
             {
-                // raw.sqlite3_key doesn't seem to exist in this version. Maybe would be safer to escape
-                res = raw.sqlite3_exec(database, $"PRAGMA key = '{key}';");
-                if (res != raw.SQLITE_OK)
-                {
-                    throw SqliteException.make(res, "Failed to open database");
-                }
+                ugly.key(database, Encoding.ASCII.GetBytes(key));
+                
                 // check all is good
-                res = raw.sqlite3_exec(database, "SELECT count(*) FROM sqlite_master;");
-                if (res != raw.SQLITE_OK)
-                {
-                    throw SqliteException.make(res, "Failed to validate database");
-                }
-
-
+                ugly.exec(database, "SELECT count(*) FROM sqlite_master;");
+     
             }
             if (raw.sqlite3_threadsafe() > 0)
             {
@@ -261,12 +243,21 @@ namespace react_native_sqlcipher_storage
     [ReactModule("SQLite")]
     internal sealed class SQLiteModule
     {
+        void Initialise() {
+            if (!initialized)
+            {
+                Batteries_V2.Init();
+                raw.sqlite3_win32_set_directory(/*temp directory type*/2, ApplicationData.Current.TemporaryFolder.Path);
+                initialized = true;
+            }
+            
+        }
 
         static string version;
         static Dictionary<string, Database> databases = new Dictionary<string, Database>();
         static Dictionary<string, string> databaseKeys = new Dictionary<string, string>();
-
-
+        static bool initialized = false;
+       
 
         int handleRetrievedVersion(object thing, string[] values, string[] names)
         {
@@ -283,6 +274,7 @@ namespace react_native_sqlcipher_storage
             JSValue config
             )
         {
+            Initialise();
             IReadOnlyDictionary<string, JSValue> cfg = config.To<IReadOnlyDictionary<string, JSValue>>();
             string dbname = cfg.ContainsKey("name") ? cfg["name"].To<string>() : "";
             string opendbname = ApplicationData.Current.LocalFolder.Path + "\\" + dbname;
@@ -291,7 +283,7 @@ namespace react_native_sqlcipher_storage
 
             if (version == null)
             {
-                delegate_exec handler = handleRetrievedVersion;
+                strdelegate_exec handler = handleRetrievedVersion;
                 string errorMessage;
                 raw.sqlite3_exec(db.database, "SELECT sqlite_version() || ' (' || sqlite_source_id() || ')' as version", handler, null, out errorMessage);
             }
@@ -304,7 +296,7 @@ namespace react_native_sqlcipher_storage
             JSValue config
         )
         {
-
+            Initialise();
             IReadOnlyDictionary<string, JSValue> cfg = config.To<IReadOnlyDictionary<string, JSValue>>();
             string dbname = cfg["path"].To<string>();
             Database db = databases[dbname];
@@ -320,6 +312,7 @@ namespace react_native_sqlcipher_storage
             JSValue config
         )
         {
+            Initialise();
             var dict = config.To<IReadOnlyDictionary<string, JSValue>>();
             var dbargs = dict["dbargs"].To<IReadOnlyDictionary<string, JSValue>>();
             string dbname = dbargs["dbname"].To<string>();
@@ -379,6 +372,7 @@ namespace react_native_sqlcipher_storage
             JSValue config
             )
         {
+            Initialise();
             IReadOnlyDictionary<string, JSValue> cfg = config.To<IReadOnlyDictionary<string, JSValue>>();
             string dbname = cfg["path"].To<string>();
             if (databases.ContainsKey(dbname))
@@ -424,6 +418,7 @@ namespace react_native_sqlcipher_storage
             reactContext.AddLifecycleEventListener(this);
         }
         */
+        
 
 
         void reOpenDatabases()

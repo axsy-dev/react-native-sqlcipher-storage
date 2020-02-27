@@ -4,8 +4,10 @@
 #include "ReactPackageProvider.h"
 #include "winrt/react_native_sqlcipher_storage.h"
 
+
 using namespace winrt::example;
 using namespace winrt::example::implementation;
+
 
 
 /// <summary>

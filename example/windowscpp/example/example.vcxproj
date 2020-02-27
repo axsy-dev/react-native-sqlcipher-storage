@@ -14,7 +14,7 @@
     <ApplicationType>Windows Store</ApplicationType>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
     <WindowsTargetPlatformVersion Condition=" '$(WindowsTargetPlatformVersion)' == '' ">10.0.18362.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformMinVersion>10.0.15063.0</WindowsTargetPlatformMinVersion>
+    <WindowsTargetPlatformMinVersion>10.0.16299.0</WindowsTargetPlatformMinVersion>
     <PackageCertificateKeyFile>example_TemporaryKey.pfx</PackageCertificateKeyFile>
     <PackageCertificateThumbprint>B95429B8013BCD65A6B19FF703FD268136874CC3</PackageCertificateThumbprint>
     <PackageCertificatePassword>password</PackageCertificatePassword>

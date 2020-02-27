@@ -212,3 +212,9 @@ https://github.com/litehelpers/Cordova-sqlcipher-adapter
 The issues and limitations for the actual SQLite can be found on these sites.
 
 https://msdn.microsoft.com/en-us/windows/uwp/debug-test-perf/windows-runtime-components-and-optimizing-interop
+
+
+Windows implemnetation
+c++  implementation is problematic on windows due to lack of OPENSSL build
+Possibility to use sqleet which has no such dependency? 
+https://github.com/resilar/sqleet
