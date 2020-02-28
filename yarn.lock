@@ -3444,10 +3444,10 @@ react-is@^16.8.1, react-is@^16.8.4:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.12.0.tgz#2cc0fe0fba742d97fd527c42a13bec4eeb06241c"
   integrity sha512-rPCkf/mWBtKc97aLL9/txD8DZdemK0vkA3JMLShjlJB3Pj3s+lpf1KaBzMfQrAmhMQB0n1cU/SUGgKKBCe837Q==
 
-react-native-windows@^0.60.0-vnext.136:
-  version "0.60.0-vnext.136"
-  resolved "https://registry.yarnpkg.com/react-native-windows/-/react-native-windows-0.60.0-vnext.136.tgz#0f0af57640fd463db571f22da5cdb2071e353db3"
-  integrity sha512-nF66pM+SNdQqFF8aX7U005qXvMF+AXBluQKsehr54EJhELIq4bdQT/QWf46viEp1bj+ZY2/bcJeeimxFltFqlw==
+react-native-windows@^0.60.0-vnext.142:
+  version "0.60.0-vnext.143"
+  resolved "https://registry.yarnpkg.com/react-native-windows/-/react-native-windows-0.60.0-vnext.143.tgz#6a8dcafc35f675ddf675eb9e236c1587f49f5edb"
+  integrity sha512-gGFsryT2IgbRgwAumZpEy9fAwiiEmvoZo5kg9FMHDh9Wq5jRx7NJKKU4VvWRaBOW7q8plBOwf0lz5pAzONnAlg==
   dependencies:
     "@babel/runtime" "^7.4.0"
     "@react-native-community/cli" "^2.6.0"

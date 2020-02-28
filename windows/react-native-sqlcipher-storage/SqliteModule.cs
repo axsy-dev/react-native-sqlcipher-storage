@@ -185,24 +185,32 @@ namespace react_native_sqlcipher_storage
 
         public Database(string path, string key = null)
         {
-
-            database = ugly.open(path);
-            if (key != null)
+            try
             {
-                ugly.key(database, Encoding.ASCII.GetBytes(key));
+                database = ugly.open(path);
+                if (key != null)
+                {
+                    ugly.key(database, Encoding.ASCII.GetBytes(key));
 
-                // check all is good
-                ugly.exec(database, "SELECT count(*) FROM sqlite_master;");
+                    // check all is good
+                    ugly.exec(database, "SELECT count(*) FROM sqlite_master;");
 
+                }
+                if (raw.sqlite3_threadsafe() > 0)
+                {
+                    Console.WriteLine(@"Good news: SQLite is thread safe!");
+                }
+                else
+                {
+                    Console.WriteLine(@"Warning: SQLite is not thread safe.");
+                }
             }
-            if (raw.sqlite3_threadsafe() > 0)
+            catch(Exception e)
             {
-                Console.WriteLine(@"Good news: SQLite is thread safe!");
+                ugly.close(database);
+                throw e;
             }
-            else
-            {
-                Console.WriteLine(@"Warning: SQLite is not thread safe.");
-            }
+
         }
         ~Database()
         {
@@ -251,7 +259,7 @@ namespace react_native_sqlcipher_storage
             return 0;
         }
 
-        
+
         [ReactMethod]
         public void open(
             JSValue config,
@@ -305,7 +313,7 @@ namespace react_native_sqlcipher_storage
             }
             catch (Exception e)
             {
-                onError( e.Message);
+                onError(e.Message);
             }
 
 
@@ -372,7 +380,7 @@ namespace react_native_sqlcipher_storage
                     }
                 }
                 // TODO can we really return a JArray. If so how does that work?
-                onSuccess( results );
+                onSuccess(results);
             }
             catch (Exception e)
             {
@@ -404,9 +412,9 @@ namespace react_native_sqlcipher_storage
                 DeleteDatabase(dbname);
                 onSuccess(0);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                onError(e.Message );
+                onError(e.Message);
             }
 
         }

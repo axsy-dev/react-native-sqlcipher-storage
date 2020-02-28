@@ -39,7 +39,7 @@
   "devDependencies": {
     "react": "16.8.6",
     "react-native": "0.60.6",
-    "react-native-windows": "^0.60.0-vnext.136"
+    "react-native-windows": "^0.60.0-vnext.142"
   },
   "dependencies": {
     "base-64": "^0.1.0"

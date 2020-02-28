@@ -32,7 +32,6 @@ var database_name = "Test.db";
 var database_key = "password";
 var bad_database_key = "bad";
 var db: Database;
-var goodPassword = true;
 
 class App extends React.Component {
 
@@ -71,7 +70,7 @@ class App extends React.Component {
                 this.addProgress("Database populated ... executing query ...");
                 db.transaction(this.queryEmployees).then((result) => {                     
                     this.addProgress("Processing completed");
-                    this.closeDatabase()});
+                });
             });
         });
     }
@@ -137,7 +136,7 @@ class App extends React.Component {
         tx.executeSql('INSERT INTO Employees (name, office, department) VALUES ("Donald Trump", 1, 3);');
         tx.executeSql('INSERT INTO Employees (name, office, department) VALUES ("Dr DRE", 2, 2);');
         tx.executeSql('INSERT INTO Employees (name, office, department) VALUES ("Samantha Fox", 2, 1);');
-        console.log("all config SQL done");
+        this.addProgress("all config SQL done");
     };
 
     queryEmployees = (tx) => {
@@ -155,7 +154,7 @@ class App extends React.Component {
         });
     };
 
-    loadAndQueryDB = () => {
+    loadAndQueryDB = (goodPassword) => {
         this.addProgress("Opening database ...");
 		this.addProgress(goodPassword ? "Good Password" : "Bad Password");
         SQLite.openDatabase({'name': database_name, 'key': goodPassword ? database_key : bad_database_key}).then((DB) => {
@@ -163,38 +162,52 @@ class App extends React.Component {
             this.addProgress("Database OPEN");
             this.populateDatabase(DB);
         }).catch((error: Error) => {
-            console.log(error);
+            this.addProgress("Database failed to open")
         });
     };
 
+    closeDb = async () => {
+        try {
+            await db.close();
+            this.addProgress("Database CLOSED");
+        }
+        catch(error)  {
+            this.errorCB(error.message);
+        }
+    }
+    
     closeDatabase = () => {
         if (db) {
-            this.addProgress( "Closing DB");
-            db.close().then(() => {
-                this.addProgress("Database CLOSED");
-            }).catch((error: Error) => {
-                this.errorCB(error.message);
-            });
+            this.setState({progress: ["Closing DB"]}, this.closeDb);
         } else {
             this.addProgress("Database was not OPENED");
         }
     };
 
     deleteDatabase = () => {
-        this.addProgress("Deleting database");
-        SQLite.deleteDatabase(database_name).then(() => {
-            console.log("Database DELETED");
-            this.addProgress("Database DELETED");
-        }).catch((error: Error) => {
-            this.errorCB(error.message);
+        this.setState({progress: ["Deleting database"]}, async () => {
+            try {
+                await SQLite.deleteDatabase(database_name);
+                this.addProgress("Database DELETED");
+            }
+            catch(error) {
+                this.errorCB(error.message);
+            }
         });
     };
 
     runDemo = () => {
         const progress = ["Starting SQLite Demo"];
-        this.setState({progress});
-        this.loadAndQueryDB();
+        this.setState({progress}, () =>this.loadAndQueryDB(true));
     };
+
+    runBadPwd = () => {
+        this.setState({progress: ["Trying to open with bad password"]}, async () => {
+            await this.closeDb();
+            await this.loadAndQueryDB(false);
+
+        });
+    }
 
     renderProgressEntry = ({item}: {item: string})=> {
         return (<View style={listStyles.li}>
@@ -210,6 +223,7 @@ class App extends React.Component {
                 <Button title="Run tests" onPress = {this.runDemo}/>
                 <Button title="Close DB" onPress = {this.closeDatabase}/>
                 <Button title="Delete DB" onPress = {this.deleteDatabase}/>
+                <Button title="Bad Password" onPress = { this.runBadPwd }/>
             </View>
             <FlatList
                 data={this.state.progress}
