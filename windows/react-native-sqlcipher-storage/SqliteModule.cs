@@ -29,7 +29,7 @@ namespace react_native_sqlcipher_storage
         {
             get
             {
-                return raw.sqlite3_bind_parameter_count(statement);
+                return ugly.bind_parameter_count(statement);
             }
         }
 
@@ -37,19 +37,13 @@ namespace react_native_sqlcipher_storage
         {
             get
             {
-                return raw.sqlite3_column_count(statement);
+                return ugly.column_count(statement);
             }
         }
 
         public static Statement Prepare(Database db, string sql)
         {
-            sqlite3_stmt statement;
-            var ret = raw.sqlite3_prepare_v2(db.database, sql, out statement);
-            if (ret != raw.SQLITE_OK)
-            {
-                raw.sqlite3_finalize(statement);
-                throw SqliteException.make(ret, sql);
-            }
+            sqlite3_stmt statement = ugly.prepare(db.database, sql);
             return new Statement(statement);
         }
 
@@ -65,7 +59,7 @@ namespace react_native_sqlcipher_storage
 
         public void Close()
         {
-            raw.sqlite3_finalize(statement);
+            ugly.sqlite3_finalize(statement);
         }
         public void Bind(IReadOnlyList<JSValue> p)
         {
@@ -77,24 +71,23 @@ namespace react_native_sqlcipher_storage
 
         private void BindParameter(int i, JSValue p)
         {
-            int result;
             switch (p.Type)
             {
 
                 case JSValueType.Int64:
-                    result = raw.sqlite3_bind_int64(statement, i, p.To<long>());
+                    ugly.bind_int64(statement, i, p.To<long>());
                     break;
                 case JSValueType.Double:
-                    result = raw.sqlite3_bind_double(statement, i, p.To<double>());
+                    ugly.bind_double(statement, i, p.To<double>());
                     break;
                 case JSValueType.String:
-                    result = raw.sqlite3_bind_text(statement, i, p.To<string>());
+                    ugly.bind_text(statement, i, p.To<string>());
                     break;
                 case JSValueType.Boolean:
-                    result = raw.sqlite3_bind_int(statement, i, p.To<bool>() ? 1 : 0);
+                    ugly.bind_int(statement, i, p.To<bool>() ? 1 : 0);
                     break;
                 case JSValueType.Null:
-                    result = raw.sqlite3_bind_null(statement, i);
+                    ugly.bind_null(statement, i);
                     break;
                 case JSValueType.Array:
                 case JSValueType.Object:
@@ -102,23 +95,12 @@ namespace react_native_sqlcipher_storage
                     throw SqliteException.make("Unsupprted parameter value");
 
             }
-
-
-            if (result != raw.SQLITE_OK)
-            {
-                throw SqliteException.make(result, "Failed to bind parameter");
-            }
         }
 
 
         int Step()
         {
-            int ret = raw.sqlite3_step(statement);
-            if (ret != raw.SQLITE_ROW && ret != raw.SQLITE_DONE)
-            {
-                throw SqliteException.make(ret);
-            }
-            return ret;
+            return ugly.step(statement);
         }
 
         public IReadOnlyList<JSValue> All()
@@ -137,7 +119,7 @@ namespace react_native_sqlcipher_storage
 
         private int ColumnType(int i)
         {
-            return raw.sqlite3_column_type(statement, i);
+            return ugly.column_type(statement, i);
         }
 
         private IReadOnlyDictionary<string, JSValue> GetRow()
@@ -146,19 +128,19 @@ namespace react_native_sqlcipher_storage
             var columnCount = ColumnCount;
             for (int i = 0; i < columnCount; ++i)
             {
-                var colName = raw.sqlite3_column_name(statement, i).utf8_to_string();
+                var colName = ugly.column_name(statement, i);
                 var colType = ColumnType(i);
 
                 switch (colType)
                 {
                     case raw.SQLITE_TEXT:
-                        result.Add(colName, new JSValue(raw.sqlite3_column_text(statement, i).utf8_to_string()));
+                        result.Add(colName, new JSValue(ugly.column_text(statement, i)));
                         break;
                     case raw.SQLITE_INTEGER:
-                        result.Add(colName, new JSValue(raw.sqlite3_column_int64(statement, i)));
+                        result.Add(colName, new JSValue(ugly.column_int64(statement, i)));
                         break;
                     case raw.SQLITE_FLOAT:
-                        result.Add(colName, new JSValue(raw.sqlite3_column_double(statement, i)));
+                        result.Add(colName, new JSValue(ugly.column_double(statement, i)));
                         break;
                     case raw.SQLITE_NULL:
                     default:
@@ -181,7 +163,7 @@ namespace react_native_sqlcipher_storage
         {
             get
             {
-                return database != null ? raw.sqlite3_total_changes(database) : 0;
+                return database != null ? ugly.total_changes(database) : 0;
             }
         }
 
@@ -189,7 +171,7 @@ namespace react_native_sqlcipher_storage
         {
             get
             {
-                return database != null ?  raw.sqlite3_last_insert_rowid(database) : 0;
+                return database != null ? ugly.last_insert_rowid(database) : 0;
             }
         }
 
@@ -203,15 +185,15 @@ namespace react_native_sqlcipher_storage
 
         public Database(string path, string key = null)
         {
-            
+
             database = ugly.open(path);
             if (key != null)
             {
                 ugly.key(database, Encoding.ASCII.GetBytes(key));
-                
+
                 // check all is good
                 ugly.exec(database, "SELECT count(*) FROM sqlite_master;");
-     
+
             }
             if (raw.sqlite3_threadsafe() > 0)
             {
@@ -224,7 +206,7 @@ namespace react_native_sqlcipher_storage
         }
         ~Database()
         {
-            raw.sqlite3_close_v2(database);
+            ugly.close_v2(database);
         }
 
         public IReadOnlyList<JSValue> All(string s, IReadOnlyList<JSValue> p)
@@ -235,7 +217,7 @@ namespace react_native_sqlcipher_storage
 
         public void close()
         {
-            raw.sqlite3_close_v2(database);
+            ugly.close(database);
         }
 
     }
@@ -243,21 +225,22 @@ namespace react_native_sqlcipher_storage
     [ReactModule("SQLite")]
     internal sealed class SQLiteModule
     {
-        void Initialise() {
+        void Initialise()
+        {
             if (!initialized)
             {
                 Batteries_V2.Init();
                 raw.sqlite3_win32_set_directory(/*temp directory type*/2, ApplicationData.Current.TemporaryFolder.Path);
                 initialized = true;
             }
-            
+
         }
 
         static string version;
         static Dictionary<string, Database> databases = new Dictionary<string, Database>();
         static Dictionary<string, string> databaseKeys = new Dictionary<string, string>();
         static bool initialized = false;
-       
+
 
         int handleRetrievedVersion(object thing, string[] values, string[] names)
         {
@@ -268,123 +251,170 @@ namespace react_native_sqlcipher_storage
             return 0;
         }
 
-
+        
         [ReactMethod]
         public void open(
-            JSValue config
+            JSValue config,
+            ReactCallback<int> onSuccess,
+            ReactCallback<string> onError
             )
         {
-            Initialise();
-            IReadOnlyDictionary<string, JSValue> cfg = config.To<IReadOnlyDictionary<string, JSValue>>();
-            string dbname = cfg.ContainsKey("name") ? cfg["name"].To<string>() : "";
-            string opendbname = ApplicationData.Current.LocalFolder.Path + "\\" + dbname;
-            string key = cfg.ContainsKey("key") ? cfg["key"].To<string>() : null;
-            var db = new Database(opendbname, key);
-
-            if (version == null)
+            try
             {
-                strdelegate_exec handler = handleRetrievedVersion;
-                string errorMessage;
-                raw.sqlite3_exec(db.database, "SELECT sqlite_version() || ' (' || sqlite_source_id() || ')' as version", handler, null, out errorMessage);
+                Initialise();
+                IReadOnlyDictionary<string, JSValue> cfg = config.To<IReadOnlyDictionary<string, JSValue>>();
+                string dbname = cfg.ContainsKey("name") ? cfg["name"].To<string>() : "";
+                string opendbname = ApplicationData.Current.LocalFolder.Path + "\\" + dbname;
+                string key = cfg.ContainsKey("key") ? cfg["key"].To<string>() : null;
+                var db = new Database(opendbname, key);
+
+                if (version == null)
+                {
+                    strdelegate_exec handler = handleRetrievedVersion;
+                    string errorMessage;
+                    raw.sqlite3_exec(db.database, "SELECT sqlite_version() || ' (' || sqlite_source_id() || ')' as version", handler, null, out errorMessage);
+                }
+                databases[dbname] = db;
+                databaseKeys[dbname] = key;
+                onSuccess(0);
             }
-            databases[dbname] = db;
-            databaseKeys[dbname] = key;
+            catch (Exception e)
+            {
+                onError(e.Message);
+            }
         }
 
         [ReactMethod]
         public void close(
-            JSValue config
+            JSValue config,
+            ReactCallback<int> onSuccess,
+            ReactCallback<string> onError
         )
         {
-            Initialise();
-            IReadOnlyDictionary<string, JSValue> cfg = config.To<IReadOnlyDictionary<string, JSValue>>();
-            string dbname = cfg["path"].To<string>();
-            Database db = databases[dbname];
-            db.close();
-            databases.Remove(dbname);
-            databaseKeys.Remove(dbname);
-
-        }
-
-
-        [ReactMethod]
-        public IReadOnlyList<JSValue> backgroundExecuteSqlBatch(
-            JSValue config
-        )
-        {
-            Initialise();
-            var dict = config.To<IReadOnlyDictionary<string, JSValue>>();
-            var dbargs = dict["dbargs"].To<IReadOnlyDictionary<string, JSValue>>();
-            string dbname = dbargs["dbname"].To<string>();
-
-            if (!databaseKeys.ContainsKey(dbname))
+            try
             {
-                throw new Exception("Database does not exist");
-            }
-
-            var executes = dict["executes"].To<IReadOnlyList<JSValue>>();
-
-            Database db = databases[dbname];
-
-            long totalChanges = db.TotalChanges;
-            string q = "";
-            var results = new List<JSValue>();
-            foreach (JSValue e in executes)
-            {
-                try
-                {
-                    var execute = e.To<IReadOnlyDictionary<string, JSValue>>();
-                    q = execute["qid"].To<string>();
-                    string s = execute["sql"].To<string>();
-                    var p = execute["params"].To<IReadOnlyList<JSValue>>();
-                    var rows = db.All(s, p);
-                    long rowsAffected = db.TotalChanges - totalChanges;
-                    totalChanges = db.TotalChanges;
-                    var result = new Dictionary<string, JSValue>();
-                    result.Add("rowsAffected", new JSValue(rowsAffected));
-                    result.Add("rows", new JSValue(rows));
-                    result.Add("insertId", new JSValue(db.LastInsertRowId));
-                    var resultInfo = new Dictionary<string, JSValue>();
-                    resultInfo.Add("type", new JSValue("success"));
-                    resultInfo.Add("qid", new JSValue(q));
-                    resultInfo.Add("result", new JSValue(result));
-                    results.Add(new JSValue(resultInfo));
-                }
-                catch (Exception err)
-                {
-                    var resultInfo = new Dictionary<string, JSValue>();
-                    var result = new Dictionary<string, JSValue>();
-                    result.Add("code", new JSValue(-1));
-                    result.Add("message", new JSValue(err.Message));
-                    resultInfo.Add("type", new JSValue("error"));
-                    resultInfo.Add("qid", new JSValue(q));
-                    resultInfo.Add("result", new JSValue(result));
-                    results.Add(new JSValue(resultInfo));
-                }
-            }
-            // TODO can we really return a JArray. If so how does that work?
-            return results;
-
-        }
-
-        [ReactMethod]
-        public async void delete(
-            JSValue config
-            )
-        {
-            Initialise();
-            IReadOnlyDictionary<string, JSValue> cfg = config.To<IReadOnlyDictionary<string, JSValue>>();
-            string dbname = cfg["path"].To<string>();
-            if (databases.ContainsKey(dbname))
-            {
+                Initialise();
+                IReadOnlyDictionary<string, JSValue> cfg = config.To<IReadOnlyDictionary<string, JSValue>>();
+                string dbname = cfg["path"].To<string>();
                 Database db = databases[dbname];
                 db.close();
                 databases.Remove(dbname);
                 databaseKeys.Remove(dbname);
+                onSuccess(0);
+
             }
+            catch (Exception e)
+            {
+                onError( e.Message);
+            }
+
+
+        }
+
+
+        [ReactMethod]
+        public void backgroundExecuteSqlBatch(
+            JSValue config,
+            ReactCallback<IReadOnlyList<JSValue>> onSuccess,
+            ReactCallback<string> onError
+        )
+        {
+            try
+            {
+                Initialise();
+                var dict = config.To<IReadOnlyDictionary<string, JSValue>>();
+                var dbargs = dict["dbargs"].To<IReadOnlyDictionary<string, JSValue>>();
+                string dbname = dbargs["dbname"].To<string>();
+
+                if (!databaseKeys.ContainsKey(dbname))
+                {
+                    throw new Exception("Database does not exist");
+                }
+
+                var executes = dict["executes"].To<IReadOnlyList<JSValue>>();
+
+                Database db = databases[dbname];
+
+                long totalChanges = db.TotalChanges;
+                string q = "";
+                var results = new List<JSValue>();
+                foreach (JSValue e in executes)
+                {
+                    try
+                    {
+                        var execute = e.To<IReadOnlyDictionary<string, JSValue>>();
+                        q = execute["qid"].To<string>();
+                        string s = execute["sql"].To<string>();
+                        var p = execute["params"].To<IReadOnlyList<JSValue>>();
+                        var rows = db.All(s, p);
+                        long rowsAffected = db.TotalChanges - totalChanges;
+                        totalChanges = db.TotalChanges;
+                        var result = new Dictionary<string, JSValue>();
+                        result.Add("rowsAffected", new JSValue(rowsAffected));
+                        result.Add("rows", new JSValue(rows));
+                        result.Add("insertId", new JSValue(db.LastInsertRowId));
+                        var resultInfo = new Dictionary<string, JSValue>();
+                        resultInfo.Add("type", new JSValue("success"));
+                        resultInfo.Add("qid", new JSValue(q));
+                        resultInfo.Add("result", new JSValue(result));
+                        results.Add(new JSValue(resultInfo));
+                    }
+                    catch (Exception err)
+                    {
+                        var resultInfo = new Dictionary<string, JSValue>();
+                        var result = new Dictionary<string, JSValue>();
+                        result.Add("code", new JSValue(-1));
+                        result.Add("message", new JSValue(err.Message));
+                        resultInfo.Add("type", new JSValue("error"));
+                        resultInfo.Add("qid", new JSValue(q));
+                        resultInfo.Add("result", new JSValue(result));
+                        results.Add(new JSValue(resultInfo));
+                    }
+                }
+                // TODO can we really return a JArray. If so how does that work?
+                onSuccess( results );
+            }
+            catch (Exception e)
+            {
+                onError(e.Message);
+            }
+
+        }
+
+        [ReactMethod]
+        public void delete(
+            JSValue config,
+            ReactCallback<int> onSuccess,
+            ReactCallback<string> onError
+            )
+        {
+            try
+            {
+                Initialise();
+                IReadOnlyDictionary<string, JSValue> cfg = config.To<IReadOnlyDictionary<string, JSValue>>();
+                string dbname = cfg["path"].To<string>();
+                if (databases.ContainsKey(dbname))
+                {
+                    Database db = databases[dbname];
+                    db.close();
+                    databases.Remove(dbname);
+                    databaseKeys.Remove(dbname);
+                }
+                // TODO this whole method was async but keeps causing a runtime error. Not sure why. So treating DeleteDatabase as fire & forget
+                DeleteDatabase(dbname);
+                onSuccess(0);
+            }
+            catch(Exception e)
+            {
+                onError(e.Message );
+            }
+
+        }
+
+        async void DeleteDatabase(string dbname)
+        {
             StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(dbname);
             await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
-
         }
 
         public void OnSuspend()
@@ -418,7 +448,7 @@ namespace react_native_sqlcipher_storage
             reactContext.AddLifecycleEventListener(this);
         }
         */
-        
+
 
 
         void reOpenDatabases()

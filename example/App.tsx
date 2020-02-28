@@ -51,45 +51,40 @@ class App extends React.Component {
     this.setState({progress});
   }
 
+  addProgress = (text) => {
+      let {progress} = this.state;
+      this.setState({progress: [...progress, text]});
+  }
+
   populateDatabase = (db: Database) => {
-        const { progress } = this.state;
-        progress.push("Database integrity check");
-        this.setState({progress});
+        this.addProgress("Database integrity check");
         db.executeSql('SELECT 1 FROM Version LIMIT 1').then(() =>{
-            progress.push("Database is ready ... executing query ...");
-            this.setState({progress});
+            this.addProgress("Database is ready ... executing query ...");
+
             db.transaction(this.queryEmployees).then(() => {
-                progress.push("Processing completed");
-                this.setState({progress});
+                this.addProgress("Processing completed");
             });
         }).catch((error) =>{
             console.log("Received error: ", error)
-            progress.push("Database not yet ready ... populating data");
-            this.setState({progress});
+            this.addProgress("Database not yet ready ... populating data");
             db.transaction(this.populateDB).then(() =>{
-                progress.push("Database populated ... executing query ...");
-                this.setState({progress});
-                db.transaction(this.queryEmployees).then((result) => {
-                    console.log("Transaction is now finished");
-                    progress.push("Processing completed");
-                    this.setState({progress});
+                this.addProgress("Database populated ... executing query ...");
+                db.transaction(this.queryEmployees).then((result) => {                     
+                    this.addProgress("Processing completed");
                     this.closeDatabase()});
             });
         });
     }
 
     populateDB = (tx) => {
-        const {progress} = this.state;
 
-        progress.push("Executing DROP stmts");
-        this.setState(progress);
+        this.addProgress("Executing DROP stmts");
 
         tx.executeSql('DROP TABLE IF EXISTS Employees;');
         tx.executeSql('DROP TABLE IF EXISTS Offices;');
         tx.executeSql('DROP TABLE IF EXISTS Departments;');
 
-        this.state.progress.push("Executing CREATE stmts");
-        this.setState(this.state);
+        this.addProgress("Executing CREATE stmts");
 
         tx.executeSql('CREATE TABLE IF NOT EXISTS Version( '
             + 'version_id INTEGER PRIMARY KEY NOT NULL); ').catch((error: Error) => {
@@ -120,8 +115,7 @@ class App extends React.Component {
             this.errorCB(error.message)
         });
 
-        progress.push("Executing INSERT stmts");
-        this.setState({progress});
+        this.addProgress("Executing INSERT stmts");
 
 
         tx.executeSql('INSERT INTO Departments (name) VALUES ("Client Services");');
@@ -147,29 +141,26 @@ class App extends React.Component {
     };
 
     queryEmployees = (tx) => {
+
         console.log("Executing employee query");
         tx.executeSql('SELECT a.name, b.name as deptName FROM Employees a, Departments b WHERE a.department = b.department_id').then(([tx,results]) => {
-            this.state.progress.push("Query completed");
-            this.setState(this.state);
+            this.addProgress("Query completed");
             var len = results.rows.length;
             for (let i = 0; i < len; i++) {
                 let row = results.rows.item(i);
-                this.state.progress.push(`Empl Name: ${row.name}, Dept Name: ${row.deptName}`);
+                this.addProgress(`Empl Name: ${row.name}, Dept Name: ${row.deptName}`);
             }
-            this.setState(this.state);
         }).catch((error: Error) => {
             console.log(error);
         });
     };
 
     loadAndQueryDB = () => {
-        this.state.progress.push("Opening database ...");
-		this.state.progress.push(goodPassword ? "Good Password" : "Bad Password");
-        this.setState(this.state);
+        this.addProgress("Opening database ...");
+		this.addProgress(goodPassword ? "Good Password" : "Bad Password");
         SQLite.openDatabase({'name': database_name, 'key': goodPassword ? database_key : bad_database_key}).then((DB) => {
             db = DB;
-            this.state.progress.push("Database OPEN");
-            this.setState(this.state);
+            this.addProgress("Database OPEN");
             this.populateDatabase(DB);
         }).catch((error: Error) => {
             console.log(error);
@@ -178,38 +169,30 @@ class App extends React.Component {
 
     closeDatabase = () => {
         if (db) {
-            console.log("Closing database ...");
-			goodPassword = !goodPassword;
-            this.state.progress.push("Closing DB");
-            this.setState(this.state);
-            db.close().then((status) => {
-                this.state.progress.push("Database CLOSED");
-                this.setState(this.state);
+            this.addProgress( "Closing DB");
+            db.close().then(() => {
+                this.addProgress("Database CLOSED");
             }).catch((error: Error) => {
                 this.errorCB(error.message);
             });
         } else {
-            this.state.progress.push("Database was not OPENED");
-            this.setState(this.state);
+            this.addProgress("Database was not OPENED");
         }
     };
 
     deleteDatabase = () => {
-        this.state.progress = ["Deleting database"];
-        this.setState(this.state);
-		goodPassword = true;
+        this.addProgress("Deleting database");
         SQLite.deleteDatabase(database_name).then(() => {
             console.log("Database DELETED");
-            this.state.progress.push("Database DELETED");
-            this.setState(this.state);
+            this.addProgress("Database DELETED");
         }).catch((error: Error) => {
             this.errorCB(error.message);
         });
     };
 
     runDemo = () => {
-        this.state.progress = ["Starting SQLite Demo"];
-        this.setState(this.state);
+        const progress = ["Starting SQLite Demo"];
+        this.setState({progress});
         this.loadAndQueryDB();
     };
 
