@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using SQLitePCL;
 using SQLitePCL.Ugly;
+using System.Threading.Tasks;
 
 namespace react_native_sqlcipher_storage
 {
@@ -321,71 +322,74 @@ namespace react_native_sqlcipher_storage
 
 
         [ReactMethod]
-        public void backgroundExecuteSqlBatch(
+        public async void backgroundExecuteSqlBatch(
             JSValue config,
             ReactCallback<IReadOnlyList<JSValue>> onSuccess,
             ReactCallback<string> onError
         )
         {
-            try
-            {
-                Initialise();
-                var dict = config.To<IReadOnlyDictionary<string, JSValue>>();
-                var dbargs = dict["dbargs"].To<IReadOnlyDictionary<string, JSValue>>();
-                string dbname = dbargs["dbname"].To<string>();
+           await Task.Run(() =>
+           {
+               try
+               {
+                   Initialise();
+                   var dict = config.To<IReadOnlyDictionary<string, JSValue>>();
+                   var dbargs = dict["dbargs"].To<IReadOnlyDictionary<string, JSValue>>();
+                   string dbname = dbargs["dbname"].To<string>();
 
-                if (!databaseKeys.ContainsKey(dbname))
-                {
-                    throw new Exception("Database does not exist");
-                }
+                   if (!databaseKeys.ContainsKey(dbname))
+                   {
+                       throw new Exception("Database does not exist");
+                   }
 
-                var executes = dict["executes"].To<IReadOnlyList<JSValue>>();
+                   var executes = dict["executes"].To<IReadOnlyList<JSValue>>();
 
-                Database db = databases[dbname];
+                   Database db = databases[dbname];
 
-                long totalChanges = db.TotalChanges;
-                string q = "";
-                var results = new List<JSValue>();
-                foreach (JSValue e in executes)
-                {
-                    try
-                    {
-                        var execute = e.To<IReadOnlyDictionary<string, JSValue>>();
-                        q = execute["qid"].To<string>();
-                        string s = execute["sql"].To<string>();
-                        var p = execute["params"].To<IReadOnlyList<JSValue>>();
-                        var rows = db.All(s, p);
-                        long rowsAffected = db.TotalChanges - totalChanges;
-                        totalChanges = db.TotalChanges;
-                        var result = new Dictionary<string, JSValue>();
-                        result.Add("rowsAffected", new JSValue(rowsAffected));
-                        result.Add("rows", new JSValue(rows));
-                        result.Add("insertId", new JSValue(db.LastInsertRowId));
-                        var resultInfo = new Dictionary<string, JSValue>();
-                        resultInfo.Add("type", new JSValue("success"));
-                        resultInfo.Add("qid", new JSValue(q));
-                        resultInfo.Add("result", new JSValue(result));
-                        results.Add(new JSValue(resultInfo));
-                    }
-                    catch (Exception err)
-                    {
-                        var resultInfo = new Dictionary<string, JSValue>();
-                        var result = new Dictionary<string, JSValue>();
-                        result.Add("code", new JSValue(-1));
-                        result.Add("message", new JSValue(err.Message));
-                        resultInfo.Add("type", new JSValue("error"));
-                        resultInfo.Add("qid", new JSValue(q));
-                        resultInfo.Add("result", new JSValue(result));
-                        results.Add(new JSValue(resultInfo));
-                    }
-                }
-                // TODO can we really return a JArray. If so how does that work?
-                onSuccess(results);
-            }
-            catch (Exception e)
-            {
-                onError(e.Message);
-            }
+                   long totalChanges = db.TotalChanges;
+                   string q = "";
+                   var results = new List<JSValue>();
+                   foreach (JSValue e in executes)
+                   {
+                       try
+                       {
+                           var execute = e.To<IReadOnlyDictionary<string, JSValue>>();
+                           q = execute["qid"].To<string>();
+                           string s = execute["sql"].To<string>();
+                           var p = execute["params"].To<IReadOnlyList<JSValue>>();
+                           var rows = db.All(s, p);
+                           long rowsAffected = db.TotalChanges - totalChanges;
+                           totalChanges = db.TotalChanges;
+                           var result = new Dictionary<string, JSValue>();
+                           result.Add("rowsAffected", new JSValue(rowsAffected));
+                           result.Add("rows", new JSValue(rows));
+                           result.Add("insertId", new JSValue(db.LastInsertRowId));
+                           var resultInfo = new Dictionary<string, JSValue>();
+                           resultInfo.Add("type", new JSValue("success"));
+                           resultInfo.Add("qid", new JSValue(q));
+                           resultInfo.Add("result", new JSValue(result));
+                           results.Add(new JSValue(resultInfo));
+                       }
+                       catch (Exception err)
+                       {
+                           var resultInfo = new Dictionary<string, JSValue>();
+                           var result = new Dictionary<string, JSValue>();
+                           result.Add("code", new JSValue(-1));
+                           result.Add("message", new JSValue(err.Message));
+                           resultInfo.Add("type", new JSValue("error"));
+                           resultInfo.Add("qid", new JSValue(q));
+                           resultInfo.Add("result", new JSValue(result));
+                           results.Add(new JSValue(resultInfo));
+                       }
+                   }
+                    // TODO can we really return a JArray. If so how does that work?
+                    onSuccess(results);
+               }
+               catch (Exception e)
+               {
+                   onError(e.Message);
+               }
+           });
 
         }
 
