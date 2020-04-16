@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.platform     = :ios, "9.0"
 
   s.source = { :git => "file://#{__dir__}"}
-  s.source_files  = "src/ios/*.{h,m}", "src/common/*.{h,c}"
+  s.source_files  = "ios/*.{h,m}", "common/*.{h,c}"
 
   s.dependency 'React'
 end
