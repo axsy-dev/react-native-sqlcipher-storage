@@ -49,6 +49,7 @@
     "react-native-sqlcipher-storage.podspec",
     "android",
     "ios",
-    "windows"
+    "windows",
+    "common"
   ]
 }
