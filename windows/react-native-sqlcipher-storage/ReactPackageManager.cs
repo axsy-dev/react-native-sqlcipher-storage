@@ -7,7 +7,7 @@ namespace react_native_sqlcipher_storage
     {
         public void CreatePackage(IReactPackageBuilder packageBuilder)
         {
-            packageBuilder.AddAttributedModules();
+           packageBuilder.AddReflectionReactPackageProvider<ReactPackageProvider>();            
         }
     }
 }

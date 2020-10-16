@@ -264,8 +264,8 @@ namespace react_native_sqlcipher_storage
         [ReactMethod]
         public void open(
             JSValue config,
-            ReactCallback<int> onSuccess,
-            ReactCallback<string> onError
+            Action<int> onSuccess,
+            Action<string> onError
             )
         {
             try
@@ -296,8 +296,8 @@ namespace react_native_sqlcipher_storage
         [ReactMethod]
         public void close(
             JSValue config,
-            ReactCallback<int> onSuccess,
-            ReactCallback<string> onError
+            Action<int> onSuccess,
+            Action<string> onError
         )
         {
             try
@@ -324,8 +324,8 @@ namespace react_native_sqlcipher_storage
         [ReactMethod]
         public async void backgroundExecuteSqlBatch(
             JSValue config,
-            ReactCallback<IReadOnlyList<JSValue>> onSuccess,
-            ReactCallback<string> onError
+            Action<IReadOnlyList<JSValue>> onSuccess,
+            Action<string> onError
         )
         {
            await Task.Run(() =>
@@ -396,8 +396,8 @@ namespace react_native_sqlcipher_storage
         [ReactMethod]
         public void delete(
             JSValue config,
-            ReactCallback<int> onSuccess,
-            ReactCallback<string> onError
+            Action<int> onSuccess,
+            Action<string> onError
             )
         {
             try
