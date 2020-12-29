@@ -72,6 +72,11 @@ RCT_EXPORT_MODULE();
 @synthesize openDBs;
 @synthesize appDBPaths;
 
++ (BOOL)requiresMainQueueSetup
+{
+  return YES;
+}
+
 - (id) init
 {
   NSLog(@"Initializing SQLitePlugin");
