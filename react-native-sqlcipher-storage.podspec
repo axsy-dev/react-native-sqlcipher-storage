@@ -14,7 +14,9 @@ Pod::Spec.new do |s|
   s.platform     = :ios, "9.0"
 
   s.source = { :git => "file://#{__dir__}"}
-  s.source_files  = "ios/*.{h,m}", "common/*.{h,c}"
+  s.source_files  = "ios/*.{h,m}"
 
+  s.xcconfig = {'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1' }
+  s.dependency 'SQLCipher', '~>4.0'
   s.dependency 'React'
 end

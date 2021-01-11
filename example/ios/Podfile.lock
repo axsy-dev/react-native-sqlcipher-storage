@@ -184,6 +184,7 @@ PODS:
   - React-jsinspector (0.61.5)
   - react-native-sqlcipher-storage (0.0.4):
     - React
+    - SQLCipher (~> 4.0)
   - React-RCTActionSheet (0.61.5):
     - React-Core/RCTActionSheetHeaders (= 0.61.5)
   - React-RCTAnimation (0.61.5):
@@ -219,6 +220,11 @@ PODS:
     - React-cxxreact (= 0.61.5)
     - React-jsi (= 0.61.5)
     - ReactCommon/jscallinvoker (= 0.61.5)
+  - SQLCipher (4.4.2):
+    - SQLCipher/standard (= 4.4.2)
+  - SQLCipher/common (4.4.2)
+  - SQLCipher/standard (4.4.2):
+    - SQLCipher/common
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -255,6 +261,7 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - boost-for-react-native
+    - SQLCipher
 
 EXTERNAL SOURCES:
   DoubleConversion:
@@ -312,7 +319,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   react-native-sqlcipher-storage:
-    :commit: 92694b8fc95a54344b3cda1ece72d4d6c7e2c1ff
+    :commit: 0c65c64849db35899e8dfe4685c6abdeace93c96
     :git: file:///Users/gillpeacegood/payliquid/react-native-sqlcipher-storage
 
 SPEC CHECKSUMS:
@@ -331,7 +338,7 @@ SPEC CHECKSUMS:
   React-jsi: cb2cd74d7ccf4cffb071a46833613edc79cdf8f7
   React-jsiexecutor: d5525f9ed5f782fdbacb64b9b01a43a9323d2386
   React-jsinspector: fa0ecc501688c3c4c34f28834a76302233e29dc0
-  react-native-sqlcipher-storage: 8c410005de30ddecb1b504c74455342f169e37fb
+  react-native-sqlcipher-storage: 048980fd5aef812ffe95702fb9f5afdc9f1ccc58
   React-RCTActionSheet: 600b4d10e3aea0913b5a92256d2719c0cdd26d76
   React-RCTAnimation: 791a87558389c80908ed06cc5dfc5e7920dfa360
   React-RCTBlob: d89293cc0236d9cb0933d85e430b0bbe81ad1d72
@@ -342,6 +349,7 @@ SPEC CHECKSUMS:
   React-RCTText: 9ccc88273e9a3aacff5094d2175a605efa854dbe
   React-RCTVibration: a49a1f42bf8f5acf1c3e297097517c6b3af377ad
   ReactCommon: 198c7c8d3591f975e5431bec1b0b3b581aa1c5dd
+  SQLCipher: 1ab0b9486a77d141e72e92ff30681926ed79c07a
   Yoga: f2a7cd4280bfe2cca5a7aed98ba0eb3d1310f18b
 
 PODFILE CHECKSUM: 2354a2edb60f5e2d2bab03cfb3f28f3fcf154b37
