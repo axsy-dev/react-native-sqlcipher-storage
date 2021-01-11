@@ -12,7 +12,7 @@
 'use strict';
 
 import SQLite from 'react-native-sqlcipher-storage';
-import XBar from 'react-native-x-bar'
+
 SQLite.DEBUG(true);
 SQLite.enablePromise(true);
 
@@ -68,7 +68,7 @@ class App extends React.Component {
             this.addProgress("Database not yet ready ... populating data");
             db.transaction(this.populateDB).then(() =>{
                 this.addProgress("Database populated ... executing query ...");
-                db.transaction(this.queryEmployees).then((result) => {                     
+                db.transaction(this.queryEmployees).then((result) => {
                     this.addProgress("Processing completed");
                 });
             });
@@ -175,7 +175,7 @@ class App extends React.Component {
             this.errorCB(error.message);
         }
     }
-    
+
     closeDatabase = () => {
         if (db) {
             this.setState({progress: ["Closing DB"]}, this.closeDb);
