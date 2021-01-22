@@ -20,6 +20,8 @@
 		5CA75EEB17F2B1B844EBD368 /* libPods-example-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A6FB64C682D836F9581EC7C6 /* libPods-example-tvOSTests.a */; };
 		62AF96674ACA9DF421C3DE39 /* libPods-example.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FEDA91C590C79564AC7D56B /* libPods-example.a */; };
 		66CFD8C4C87881CD94BBA6BF /* libPods-example-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4FA85473203657DD585CEF28 /* libPods-example-tvOS.a */; };
+		8D90D56F25BAF74000B434A5 /* www in Resources */ = {isa = PBXBuildFile; fileRef = 8D90D56E25BAF74000B434A5 /* www */; };
+		8D90D57025BAF74000B434A5 /* www in Resources */ = {isa = PBXBuildFile; fileRef = 8D90D56E25BAF74000B434A5 /* www */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +62,7 @@
 		540E89CC4BD268F04DB77191 /* Pods-example-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-example-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-example-tvOS/Pods-example-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		704C6C6599B515B001FAE72C /* Pods-example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-example.debug.xcconfig"; path = "Target Support Files/Pods-example/Pods-example.debug.xcconfig"; sourceTree = "<group>"; };
 		80ADD21E3E8D6B876BD4A55A /* Pods-example-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-example-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-example-tvOSTests/Pods-example-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
+		8D90D56E25BAF74000B434A5 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; name = www; path = example/www; sourceTree = "<group>"; };
 		8EF6DC16CFF9B72E8FF709EB /* Pods-exampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-exampleTests.debug.xcconfig"; path = "Target Support Files/Pods-exampleTests/Pods-exampleTests.debug.xcconfig"; sourceTree = "<group>"; };
 		A6FB64C682D836F9581EC7C6 /* libPods-example-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-example-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ABA762A387571D33EA38792A /* Pods-example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-example.release.xcconfig"; path = "Target Support Files/Pods-example/Pods-example.release.xcconfig"; sourceTree = "<group>"; };
@@ -125,6 +128,7 @@
 		13B07FAE1A68108700A75B9A /* example */ = {
 			isa = PBXGroup;
 			children = (
+				8D90D56E25BAF74000B434A5 /* www */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -336,6 +340,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8D90D56F25BAF74000B434A5 /* www in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
 			);
@@ -345,6 +350,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8D90D57025BAF74000B434A5 /* www in Resources */,
 				2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

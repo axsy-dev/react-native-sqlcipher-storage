@@ -14,6 +14,8 @@ import net.sqlcipher.database.SQLiteCursor;
 import net.sqlcipher.database.SQLiteDatabase;
 import net.sqlcipher.database.SQLiteException;
 import net.sqlcipher.database.SQLiteStatement;
+import net.sqlcipher.database.SQLiteDatabaseHook;
+
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Base64;
@@ -358,7 +360,7 @@ public class SQLitePlugin extends ReactContextBaseJavaModule {
      * @return instance of SQLite database
      * @throws Exception
      */
-    private SQLiteDatabase openDatabase(String dbname, String key, String assetFilePath, int openFlags, CallbackContext cbc) throws Exception {
+    private SQLiteDatabase openDatabase(String dbname, String key, String assetFilePath, int openFlags, CallbackContext cbc, boolean migrate) throws Exception {
         InputStream in = null;
         File dbfile = null;
         try {
@@ -407,14 +409,27 @@ public class SQLitePlugin extends ReactContextBaseJavaModule {
             }
 
             Log.v("info", "Opening sqlite db: " + dbfile.getAbsolutePath());
+            SQLiteDatabaseHook hook = null;
+            if (migrate == true) {
+                hook = new SQLiteDatabaseHook() {
+                    public void preKey(SQLiteDatabase database) {}
+                    public void postKey(SQLiteDatabase database) {
+                        database.rawQuery("PRAGMA cipher_migrate", null);
+                    }
+                };
 
-            SQLiteDatabase mydb = SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null);
+            }
+
+            SQLiteDatabase mydb = (hook == null) ? SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null) : SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null, hook);
 
             if (cbc != null) // needed for Android locking/closing workaround
                 cbc.success("database open");
 
             return mydb;
         } catch (SQLiteException ex) {
+            if (migrate == false) {
+                return openDatabase(dbname, key, assetFilePath, openFlags, cbc, true);
+            }
             if (cbc != null) // needed for Android locking/closing workaround
                 cbc.error("can't open database " + ex);
             throw ex;
@@ -1039,7 +1054,7 @@ public class SQLitePlugin extends ReactContextBaseJavaModule {
         public void run() {
             try {
 
-                this.mydb = openDatabase(dbname, this.key, this.assetFilename, this.openFlags, this.openCbc);
+                this.mydb = openDatabase(dbname, this.key, this.assetFilename, this.openFlags, this.openCbc, false);
             } catch (Exception e) {
                 Log.e(SQLitePlugin.class.getSimpleName(), "unexpected error, stopping db thread", e);
                 dbrmap.remove(dbname);
@@ -1058,7 +1073,7 @@ public class SQLitePlugin extends ReactContextBaseJavaModule {
                     if (androidLockWorkaround && dbq.queries.length == 1 && dbq.queries[0].equals("COMMIT")) {
                         // Log.v(SQLitePlugin.class.getSimpleName(), "close and reopen db");
                         closeDatabaseNow(dbname);
-                        this.mydb = openDatabase(dbname, this.key, "", this.openFlags, null);
+                        this.mydb = openDatabase(dbname, this.key, "", this.openFlags, null, false);
                         // Log.v(SQLitePlugin.class.getSimpleName(), "close and reopen db finished");
                     }
 

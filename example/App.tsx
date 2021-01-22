@@ -25,6 +25,7 @@ import  {
   FlatList,
   SafeAreaView
 } from 'react-native';
+import RNFS from "react-native-fs";
 
 
 type Database = Object;
@@ -217,6 +218,20 @@ class App extends React.Component {
         </View>)
     };
 
+    migrateDb = async () => {
+        try {
+            const DB = await SQLite.openDatabase({name: "2x.db", createFromLocation: 1, key: "test"});
+            this.addProgress("Migrated database");
+            await DB.close();
+            this.addProgress("Closed database");
+            await SQLite.deleteDatabase("2x.db");
+            this.addProgress("Deleted Database");
+        }
+        catch(err) {
+            this.addProgress("Database migration failed");
+        }
+    }
+
     render(){
         return (<SafeAreaView style={styles.mainContainer}>
             <View>
@@ -224,6 +239,7 @@ class App extends React.Component {
                 <Button title="Close DB" onPress = {this.closeDatabase}/>
                 <Button title="Delete DB" onPress = {this.deleteDatabase}/>
                 <Button title="Bad Password" onPress = { this.runBadPwd }/>
+                <Button title="Migrate Test" onPress = {this.migrateDb} />
             </View>
             <FlatList
                 data={this.state.progress}
