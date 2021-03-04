@@ -17,8 +17,19 @@ var config = [
   [false, "SQLitePlugin", "executeSql", true, false],
   [false, "SQLitePluginTransaction", "executeSql", true, false],
   [false, "SQLiteFactory", "deleteDatabase", false, false],
-  [true, "SQLiteFactory", "openDatabase", false, false]
+  [true, "SQLiteFactory", "openDatabase", false, false],
 ];
+
+var config2 = [
+  [false, "SQLitePlugin", "transactionCb", false, true],
+  [false, "SQLitePlugin", "readTransactionCb", false, true],
+  [false, "SQLitePlugin", "closeCb", false, false],
+  [false, "SQLitePlugin", "executeSqlCb", true, false],
+  [false, "SQLitePluginTransaction", "executeSqlCb", true, false],
+  [false, "SQLiteFactory", "deleteDatabaseCb", false, false],
+  [true, "SQLiteFactory", "openDatabaseCb", false, false],
+];
+
 
 var originalFns = {};
 config.forEach(entry => {
@@ -30,6 +41,7 @@ config.forEach(entry => {
 function enablePromiseRuntime(enable) {
   if (enable) {
     createPromiseRuntime();
+    createExtraCallbackRuntime();
   } else {
     createCallbackRuntime();
   }
@@ -45,6 +57,19 @@ function createCallbackRuntime() {
       reverseCallbacks
     ] = entry;
     plugin[prototype].prototype[fn] = originalFns[prototype + "." + fn];
+  });
+}
+
+function createExtraCallbackRuntime() {
+  config2.forEach(entry => {
+    let [
+      returnValueExpected,
+      prototype,
+      fn,
+      argsNeedPadding,
+      reverseCallbacks
+    ] = entry;
+    plugin[prototype].prototype[fn] = originalFns[prototype + "." + fn.slice(0, -2)];
   });
 }
 
@@ -66,7 +91,7 @@ function createPromiseRuntime() {
       var promise = new Promise(
         function(resolve, reject) {
           let success = function(...args) {
-            return returnValueExpected ? resolve(retValue) : resolve(args);
+          return returnValueExpected ? resolve(retValue) : resolve(args);
           };
           let error = function(err) {
             reject(err);
