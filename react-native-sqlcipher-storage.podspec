@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.homepage     = package['homepage']
   s.platform     = :ios, "9.0"
 
-  s.source = { :git => "file://#{__dir__}"}
+  s.source = { :git => "https://github.com/axsy-dev/react-native-sqlcipher-storage.git"}
   s.source_files  = "ios/*.{h,m}"
 
   s.xcconfig = {'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1' }
