@@ -107,13 +107,21 @@ namespace react_native_sqlcipher_storage
         public IReadOnlyList<JSValue> All()
         {
             List<JSValue> result = new List<JSValue>();
-            int stepResult = Step();
-            while (stepResult == raw.SQLITE_ROW)
+
+            try
             {
-                result.Add(new JSValue(GetRow()));
-                stepResult = Step();
+                int stepResult = Step();
+                while (stepResult == raw.SQLITE_ROW)
+                {
+                    result.Add(new JSValue(GetRow()));
+                    stepResult = Step();
+                }
             }
-            Close();
+            finally
+            {
+                Close();
+            }
+            
             return result;
 
         }
