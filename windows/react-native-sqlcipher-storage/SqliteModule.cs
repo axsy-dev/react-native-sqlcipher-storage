@@ -402,7 +402,7 @@ namespace react_native_sqlcipher_storage
         }
 
         [ReactMethod]
-        public void delete(
+        public async void delete(
             JSValue config,
             Action<int> onSuccess,
             Action<string> onError
@@ -421,7 +421,7 @@ namespace react_native_sqlcipher_storage
                     databaseKeys.Remove(dbname);
                 }
                 // TODO this whole method was async but keeps causing a runtime error. Not sure why. So treating DeleteDatabase as fire & forget
-                DeleteDatabase(dbname);
+                await DeleteDatabase(dbname);
                 onSuccess(0);
             }
             catch (Exception e)
@@ -431,10 +431,13 @@ namespace react_native_sqlcipher_storage
 
         }
 
-        async void DeleteDatabase(string dbname)
+        async Task DeleteDatabase(string dbname)
         {
-            StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(dbname);
-            await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
+            var file = await ApplicationData.Current.LocalFolder.TryGetItemAsync(dbname);
+            if (file != null)
+            {
+                await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
+            }
         }
 
         public void OnSuspend()
