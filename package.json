@@ -1,6 +1,6 @@
 {
   "name": "react-native-sqlcipher-storage",
-  "version": "0.0.4",
+  "version": "0.0.5-alpha.0",
   "description": "SQLCipher bindings for React Native (Android & iOS)",
   "main": "src/index.js",
   "author": "Axsy",
