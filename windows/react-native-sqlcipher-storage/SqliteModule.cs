@@ -22,7 +22,7 @@ namespace react_native_sqlcipher_storage
     }
 
 
-    class Statement
+    class Statement : IDisposable
     {
         public sqlite3_stmt statement;
 
@@ -53,15 +53,8 @@ namespace react_native_sqlcipher_storage
             statement = s;
         }
 
-        ~Statement()
-        {
-            Close();
-        }
+        public void Dispose() => statement.Dispose();
 
-        public void Close()
-        {
-            ugly.sqlite3_finalize(statement);
-        }
         public void Bind(IReadOnlyList<JSValue> p)
         {
             for (int i = 0; i < p.Count; i++)
@@ -108,20 +101,17 @@ namespace react_native_sqlcipher_storage
         {
             List<JSValue> result = new List<JSValue>();
 
-            try
-            {
+            try {
                 int stepResult = Step();
                 while (stepResult == raw.SQLITE_ROW)
                 {
                     result.Add(new JSValue(GetRow()));
                     stepResult = Step();
                 }
+            } finally {
+                this.Dispose()
             }
-            finally
-            {
-                Close();
-            }
-            
+
             return result;
 
         }
