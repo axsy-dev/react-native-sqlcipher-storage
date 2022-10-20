@@ -109,7 +109,7 @@ namespace react_native_sqlcipher_storage
                     stepResult = Step();
                 }
             } finally {
-                this.Dispose()
+                this.Dispose();
             }
 
             return result;
