@@ -22,7 +22,7 @@ namespace react_native_sqlcipher_storage
     }
 
 
-    class Statement
+    class Statement : IDisposable
     {
         public sqlite3_stmt statement;
 
@@ -53,15 +53,16 @@ namespace react_native_sqlcipher_storage
             statement = s;
         }
 
-        ~Statement()
-        {
-            Close();
-        }
+        /*
+            Previously we were calling ugly.sqlite3_finalize(statement) which was causing a crash
+            (either during gc or the finally block in All())
+            sqlite3_stmt implements IDisposable so we should instead be calling statement.Dispose()
+            Note: we may not need to implement IDisposable here, however this passes initial tests and has resoved the crash
+            Issue: https://github.com/axsy-dev/react-app/issues/8637
+            Fixed in https://github.com/axsy-dev/react-native-sqlcipher-storage/pull/41
+        */
+        public void Dispose() => statement.Dispose();
 
-        public void Close()
-        {
-            ugly.sqlite3_finalize(statement);
-        }
         public void Bind(IReadOnlyList<JSValue> p)
         {
             for (int i = 0; i < p.Count; i++)
@@ -108,20 +109,17 @@ namespace react_native_sqlcipher_storage
         {
             List<JSValue> result = new List<JSValue>();
 
-            try
-            {
+            try {
                 int stepResult = Step();
                 while (stepResult == raw.SQLITE_ROW)
                 {
                     result.Add(new JSValue(GetRow()));
                     stepResult = Step();
                 }
+            } finally {
+                this.Dispose();
             }
-            finally
-            {
-                Close();
-            }
-            
+
             return result;
 
         }
