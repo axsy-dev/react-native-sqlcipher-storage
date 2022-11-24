@@ -74,8 +74,8 @@ repositories {
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'net.zetetic:android-database-sqlcipher:4.4.2@aar'
-    implementation "androidx.sqlite:sqlite:2.0.1"
+    implementation 'net.zetetic:sqlcipher-android:4.5.2@aar'
+    implementation 'androidx.sqlite:sqlite:2.1.0'
 }
 
 
