@@ -13,10 +13,21 @@
  * See http://opensource.org/licenses/alphabetical for full text.
  */
 
-import base64 from 'base-64';
-import{ NativeModules } from "react-native";
+import base64 from "base-64";
+import { NativeModules } from "react-native";
 
-var DB_STATE_INIT, DB_STATE_OPEN, READ_ONLY_REGEX, SQLiteFactory, SQLitePlugin, SQLitePluginTransaction, argsArray, dblocations, newSQLError, nextTick, root, txLocks;
+var DB_STATE_INIT,
+  DB_STATE_OPEN,
+  READ_ONLY_REGEX,
+  SQLiteFactory,
+  SQLitePlugin,
+  SQLitePluginTransaction,
+  argsArray,
+  dblocations,
+  newSQLError,
+  nextTick,
+  root,
+  txLocks;
 
 var plugin = {};
 
@@ -28,7 +39,7 @@ DB_STATE_OPEN = "OPEN";
 
 txLocks = {};
 
-newSQLError = function(error, code) {
+newSQLError = function (error, code) {
   var sqlError;
   sqlError = error;
   if (!code) {
@@ -46,24 +57,27 @@ newSQLError = function(error, code) {
     sqlError.code = code;
   }
   if (!sqlError.code && !sqlError.message) {
-    sqlError = new Error("an unknown error was returned: " + JSON.stringify(sqlError));
+    sqlError = new Error(
+      "an unknown error was returned: " + JSON.stringify(sqlError)
+    );
     sqlError.code = code;
   }
   return sqlError;
 };
 
-nextTick = window.setImmediate || function(fun) {
-  window.setTimeout(fun, 0);
-};
-
+nextTick =
+  window.setImmediate ||
+  function (fun) {
+    window.setTimeout(fun, 0);
+  };
 
 /*
   Utility that avoids leaking the arguments object. See
   https://www.npmjs.org/package/argsarray
  */
 
-argsArray = function(fun) {
-  return function() {
+argsArray = function (fun) {
+  return function () {
     var args, i, len;
     len = arguments.length;
     if (len) {
@@ -79,32 +93,36 @@ argsArray = function(fun) {
   };
 };
 
-plugin.exec = function(method, options, success, error) {
-  if (plugin.sqlitePlugin.DEBUG){
-    console.log('SQLite.' + method + '(' + JSON.stringify(options) + ')');
+plugin.exec = function (method, options, success, error) {
+  if (plugin.sqlitePlugin.DEBUG) {
+    console.log("SQLite." + method + "(" + JSON.stringify(options) + ")");
   }
-  NativeModules["SQLite"][method](options,success,error);
+  NativeModules["SQLite"][method](options, success, error);
 };
 
-SQLitePlugin = function(openargs, openSuccess, openError) {
+SQLitePlugin = function (openargs, openSuccess, openError) {
   var dbname;
-  if (!(openargs && openargs['name'])) {
-    throw newSQLError("Cannot create a SQLitePlugin db instance without a db name");
+  if (!(openargs && openargs["name"])) {
+    throw newSQLError(
+      "Cannot create a SQLitePlugin db instance without a db name"
+    );
   }
   dbname = openargs.name;
-  if (typeof dbname !== 'string') {
-    throw newSQLError('sqlite plugin database name must be a string');
+  if (typeof dbname !== "string") {
+    throw newSQLError("sqlite plugin database name must be a string");
   }
   this.openargs = openargs;
   this.dbname = dbname;
   this.openSuccess = openSuccess;
   this.openError = openError;
-  this.openSuccess || (this.openSuccess = function() {
-    console.log("DB opened: " + dbname);
-  });
-  this.openError || (this.openError = function(e) {
-    console.log(e.message);
-  });
+  this.openSuccess ||
+    (this.openSuccess = function () {
+      console.log("DB opened: " + dbname);
+    });
+  this.openError ||
+    (this.openError = function (e) {
+      console.log(e.message);
+    });
   this.open(this.openSuccess, this.openError);
 };
 
@@ -114,7 +132,7 @@ SQLitePlugin.prototype.databaseFeatures = {
 
 SQLitePlugin.prototype.openDBs = {};
 
-SQLitePlugin.prototype.addTransaction = function(t) {
+SQLitePlugin.prototype.addTransaction = function (t) {
   if (!txLocks[this.dbname]) {
     txLocks[this.dbname] = {
       queue: [],
@@ -122,85 +140,103 @@ SQLitePlugin.prototype.addTransaction = function(t) {
     };
   }
   txLocks[this.dbname].queue.push(t);
-  if (this.dbname in this.openDBs && this.openDBs[this.dbname] !== DB_STATE_INIT) {
+  if (
+    this.dbname in this.openDBs &&
+    this.openDBs[this.dbname] !== DB_STATE_INIT
+  ) {
     this.startNextTransaction();
   } else {
     if (this.dbname in this.openDBs) {
-      console.log('new transaction is waiting for open operation');
+      console.log("new transaction is waiting for open operation");
     } else {
-      console.log('database is closed, new transaction is [stuck] waiting until db is opened again!');
+      console.log(
+        "database is closed, new transaction is [stuck] waiting until db is opened again!"
+      );
     }
   }
 };
 
-SQLitePlugin.prototype.transaction = function(fn, error, success) {
+SQLitePlugin.prototype.transaction = function (fn, error, success) {
   if (!this.openDBs[this.dbname]) {
-    error(newSQLError('database not open'));
+    error(newSQLError("database not open"));
     return;
   }
-  this.addTransaction(new SQLitePluginTransaction(this, fn, error, success, true, false));
+  this.addTransaction(
+    new SQLitePluginTransaction(this, fn, error, success, true, false)
+  );
 };
 
-SQLitePlugin.prototype.readTransaction = function(fn, error, success) {
+SQLitePlugin.prototype.readTransaction = function (fn, error, success) {
   if (!this.openDBs[this.dbname]) {
-    error(newSQLError('database not open'));
+    error(newSQLError("database not open"));
     return;
   }
-  this.addTransaction(new SQLitePluginTransaction(this, fn, error, success, false, true));
+  this.addTransaction(
+    new SQLitePluginTransaction(this, fn, error, success, false, true)
+  );
 };
 
-SQLitePlugin.prototype.startNextTransaction = function() {
+SQLitePlugin.prototype.startNextTransaction = function () {
   var self;
   self = this;
-  nextTick((function(_this) {
-    return function() {
-      var txLock;
-      if (!(_this.dbname in _this.openDBs) || _this.openDBs[_this.dbname] !== DB_STATE_OPEN) {
-        console.log('cannot start next transaction: database not open');
-        return;
-      }
-      txLock = txLocks[self.dbname];
-      if (!txLock) {
-        console.log('cannot start next transaction: database connection is lost');
-        return;
-      } else if (txLock.queue.length > 0 && !txLock.inProgress) {
-        txLock.inProgress = true;
-        txLock.queue.shift().start();
-      }
-    };
-  })(this));
+  nextTick(
+    (function (_this) {
+      return function () {
+        var txLock;
+        if (
+          !(_this.dbname in _this.openDBs) ||
+          _this.openDBs[_this.dbname] !== DB_STATE_OPEN
+        ) {
+          console.log("cannot start next transaction: database not open");
+          return;
+        }
+        txLock = txLocks[self.dbname];
+        if (!txLock) {
+          console.log(
+            "cannot start next transaction: database connection is lost"
+          );
+          return;
+        } else if (txLock.queue.length > 0 && !txLock.inProgress) {
+          txLock.inProgress = true;
+          txLock.queue.shift().start();
+        }
+      };
+    })(this)
+  );
 };
 
-SQLitePlugin.prototype.abortAllPendingTransactions = function() {
+SQLitePlugin.prototype.abortAllPendingTransactions = function () {
   var j, len1, ref, tx, txLock;
   txLock = txLocks[this.dbname];
   if (!!txLock && txLock.queue.length > 0) {
     ref = txLock.queue;
     for (j = 0, len1 = ref.length; j < len1; j++) {
       tx = ref[j];
-      tx.abortFromQ(newSQLError('Invalid database handle'));
+      tx.abort(newSQLError("Invalid database handle"));
     }
     txLock.queue = [];
     txLock.inProgress = false;
   }
 };
 
-SQLitePlugin.prototype.open = function(success, error) {
+SQLitePlugin.prototype.open = function (success, error) {
   var openerrorcb, opensuccesscb;
   if (this.dbname in this.openDBs) {
-    console.log('database already open: ' + this.dbname);
-    nextTick((function(_this) {
-      return function() {
-        success(_this);
-      };
-    })(this));
+    console.log("database already open: " + this.dbname);
+    nextTick(
+      (function (_this) {
+        return function () {
+          success(_this);
+        };
+      })(this)
+    );
   } else {
-    console.log('OPEN database: ' + this.dbname);
-    opensuccesscb = (function(_this) {
-      return function() {
+    console.log("OPEN database: " + this.dbname);
+    opensuccesscb = (function (_this) {
+      return function () {
         var txLock;
         if (!_this.openDBs[_this.dbname]) {
-          console.log('database was closed during open operation');
+          console.log("database was closed during open operation");
         }
         if (_this.dbname in _this.openDBs) {
           _this.openDBs[_this.dbname] = DB_STATE_OPEN;
@@ -214,81 +250,99 @@ SQLitePlugin.prototype.open = function(success, error) {
         }
       };
     })(this);
-    openerrorcb = (function(_this) {
-      return function() {
-        console.log('OPEN database: ' + _this.dbname + ' failed, aborting any pending transactions');
+    openerrorcb = (function (_this) {
+      return function () {
+        console.log(
+          "OPEN database: " +
+            _this.dbname +
+            " failed, aborting any pending transactions"
+        );
         if (!!error) {
-          error(newSQLError('Could not open database'));
+          error(newSQLError("Could not open database"));
         }
         delete _this.openDBs[_this.dbname];
         _this.abortAllPendingTransactions();
       };
     })(this);
     this.openDBs[this.dbname] = DB_STATE_INIT;
-    plugin.exec("open",this.openargs,opensuccesscb, openerrorcb);
+    plugin.exec("open", this.openargs, opensuccesscb, openerrorcb);
   }
 };
 
-SQLitePlugin.prototype.close = function(success, error) {
+SQLitePlugin.prototype.close = function (success, error) {
   var mysuccess, myerror;
   if (this.dbname in this.openDBs) {
     if (txLocks[this.dbname] && txLocks[this.dbname].inProgress) {
-      console.log('cannot close: transaction is in progress');
-      error(newSQLError('database cannot be closed while a transaction is in progress'));
+      console.log("cannot close: transaction is in progress");
+      error(
+        newSQLError(
+          "database cannot be closed while a transaction is in progress"
+        )
+      );
       return;
     }
-    console.log('CLOSE database: ' + this.dbname);
+    console.log("CLOSE database: " + this.dbname);
     delete this.openDBs[this.dbname];
     if (txLocks[this.dbname]) {
-      console.log('closing db with transaction queue length: ' + txLocks[this.dbname].queue.length);
+      console.log(
+        "closing db with transaction queue length: " +
+          txLocks[this.dbname].queue.length
+      );
     } else {
-      console.log('closing db with no transaction lock state');
+      console.log("closing db with no transaction lock state");
     }
-    var mysuccess = function(t, r) {
+    var mysuccess = function (t, r) {
       if (!!success) {
         return success(r);
       }
     };
-    var myerror = function(t, e) {
+    var myerror = function (t, e) {
       if (!!error) {
         return error(e);
       } else {
-        console.log("Error handler not provided: ",e);
+        console.log("Error handler not provided: ", e);
       }
     };
-    plugin.exec("close",{path: this.dbname}, mysuccess, myerror);
+    plugin.exec("close", { path: this.dbname }, mysuccess, myerror);
   } else {
-    var err = 'cannot close: database is not open';
+    var err = "cannot close: database is not open";
     console.log(err);
     if (error) {
-      nextTick(function() {
+      nextTick(function () {
         return error(err);
       });
     }
   }
 };
 
-SQLitePlugin.prototype.executeSql = function(statement, params, success, error) {
+SQLitePlugin.prototype.executeSql = function (
+  statement,
+  params,
+  success,
+  error
+) {
   var myerror, myfn, mysuccess;
-  mysuccess = function(t, r) {
+  mysuccess = function (t, r) {
     if (!!success) {
       return success(r);
     }
   };
-  myerror = function(t, e) {
+  myerror = function (t, e) {
     if (!!error) {
       return error(e);
     } else {
-      console.log("Error handler not provided: ",e);
+      console.log("Error handler not provided: ", e);
     }
   };
-  myfn = function(tx) {
+  myfn = function (tx) {
     tx.addStatement(statement, params, mysuccess, myerror);
   };
-  this.addTransaction(new SQLitePluginTransaction(this, myfn, null, null, false, false));
+  this.addTransaction(
+    new SQLitePluginTransaction(this, myfn, null, null, false, false)
+  );
 };
 
-SQLitePluginTransaction = function(db, fn, error, success, txlock, readOnly) {
+SQLitePluginTransaction = function (db, fn, error, success, txlock, readOnly) {
   if (typeof fn !== "function") {
     /*
     This is consistent with the implementation in Chrome -- it
@@ -311,13 +365,16 @@ SQLitePluginTransaction = function(db, fn, error, success, txlock, readOnly) {
   this.readOnly = readOnly;
   this.executes = [];
   if (txlock) {
-    this.addStatement("BEGIN", [], null, function(tx, err) {
-      throw newSQLError("unable to begin transaction: " + err.message, err.code);
+    this.addStatement("BEGIN", [], null, function (tx, err) {
+      throw newSQLError(
+        "unable to begin transaction: " + err.message,
+        err.code
+      );
     });
   }
 };
 
-SQLitePluginTransaction.prototype.start = function() {
+SQLitePluginTransaction.prototype.start = function () {
   var err;
   try {
     this.fn(this);
@@ -332,62 +389,78 @@ SQLitePluginTransaction.prototype.start = function() {
   }
 };
 
-SQLitePluginTransaction.prototype.executeSql = function(sql, values, success, error) {
+SQLitePluginTransaction.prototype.executeSql = function (
+  sql,
+  values,
+  success,
+  error
+) {
   var that = this;
   var mysuccess, myerror;
   if (that.finalized) {
     throw {
-      message: 'InvalidStateError: DOM Exception 11: This transaction is already finalized. Transactions are committed' +
-      ' after its success or failure handlers are called. If you are using a Promise to handle callbacks, be aware that' +
-      ' implementations following the A+ standard adhere to run-to-completion semantics and so Promise resolution occurs' +
-      ' on a subsequent tick and therefore after the transaction commits.',
+      message:
+        "InvalidStateError: DOM Exception 11: This transaction is already finalized. Transactions are committed" +
+        " after its success or failure handlers are called. If you are using a Promise to handle callbacks, be aware that" +
+        " implementations following the A+ standard adhere to run-to-completion semantics and so Promise resolution occurs" +
+        " on a subsequent tick and therefore after the transaction commits.",
       code: 11
     };
     return;
   }
   if (that.readOnly && READ_ONLY_REGEX.test(sql)) {
     that.handleStatementFailure(error, {
-      message: 'invalid sql for a read-only transaction'
+      message: "invalid sql for a read-only transaction"
     });
     return;
   }
-  var mysuccess = function(t, r) {
+  var mysuccess = function (t, r) {
     if (!!success) {
-      return success(t,r);
+      return success(t, r);
     }
   };
-  var myerror = function(t, e) {
+  var myerror = function (t, e) {
     if (!!error) {
       return error(e);
     } else {
-      console.log("Error handler not provided: ",e);
+      console.log("Error handler not provided: ", e);
     }
   };
   that.addStatement(sql, values, mysuccess, myerror);
 };
 
-SQLitePluginTransaction.prototype.addStatement = function(sql, values, success, error) {
+SQLitePluginTransaction.prototype.addStatement = function (
+  sql,
+  values,
+  success,
+  error
+) {
   var j, len1, params, t, v;
   params = [];
   if (!!values && values.constructor === Array) {
     for (j = 0, len1 = values.length; j < len1; j++) {
       v = values[j];
       t = typeof v;
-      if (v === null || v === void 0 || t === 'number' || t === 'string'){
+      if (v === null || v === void 0 || t === "number" || t === "string") {
         params.push(v);
-      }
-      else if (t === 'boolean') {
+      } else if (t === "boolean") {
         //Convert true -> 1 / false -> 0
         params.push(~~v);
-      }
-      else if (v instanceof Blob) {
+      } else if (v instanceof Blob) {
         v.valueOf();
-      }
-      else if (t !== 'function') {
+      } else if (t !== "function") {
         params.push(v.toString());
-        console.warn('addStatement - parameter of type <'+t+'> converted to string using toString()')
+        console.warn(
+          "addStatement - parameter of type <" +
+            t +
+            "> converted to string using toString()"
+        );
       } else {
-        error(newSQLError('Unsupported parameter type <'+t+'> found in addStatement'));
+        error(
+          newSQLError(
+            "Unsupported parameter type <" + t + "> found in addStatement"
+          )
+        );
         return;
       }
     }
@@ -400,7 +473,10 @@ SQLitePluginTransaction.prototype.addStatement = function(sql, values, success, 
   });
 };
 
-SQLitePluginTransaction.prototype.handleStatementSuccess = function(handler, response) {
+SQLitePluginTransaction.prototype.handleStatementSuccess = function (
+  handler,
+  response
+) {
   // console.log('handler response:',response,response.rows);
   var payload, rows;
   if (!handler) {
@@ -410,14 +486,14 @@ SQLitePluginTransaction.prototype.handleStatementSuccess = function(handler, res
   // console.log('handler rows now:',rows);
   payload = {
     rows: {
-      item: function(i) {
+      item: function (i) {
         return rows[i];
       },
       /**
        * non-standard Web SQL Database method to expose a copy of raw results
        * @return {Array}
        */
-      raw: function() {
+      raw: function () {
         return rows.slice();
       },
       length: rows.length
@@ -429,31 +505,53 @@ SQLitePluginTransaction.prototype.handleStatementSuccess = function(handler, res
   handler(this, payload);
 };
 
-SQLitePluginTransaction.prototype.handleStatementFailure = function(handler, response) {
+SQLitePluginTransaction.prototype.handleStatementFailure = function (
+  handler,
+  response
+) {
   if (!handler) {
-    throw newSQLError("a statement with no error handler failed: " + response.message, response.code);
+    throw newSQLError(
+      "a statement with no error handler failed: " + response.message,
+      response.code
+    );
   }
   if (handler(this, response) !== false) {
-    throw newSQLError("a statement error callback did not return false: " + response.message, response.code);
+    throw newSQLError(
+      "a statement error callback did not return false: " + response.message,
+      response.code
+    );
   }
 };
 
-SQLitePluginTransaction.prototype.run = function() {
-  var batchExecutes, handlerFor, i, mycb, myerror, mycbmap, request, tropts, tx, txFailure, waiting;
+SQLitePluginTransaction.prototype.run = function () {
+  var batchExecutes,
+    handlerFor,
+    i,
+    mycb,
+    myerror,
+    mycbmap,
+    request,
+    tropts,
+    tx,
+    txFailure,
+    waiting;
   txFailure = null;
   tropts = [];
   batchExecutes = this.executes;
   waiting = batchExecutes.length;
   this.executes = [];
   tx = this;
-  handlerFor = function(index, didSucceed) {
-    return function(response) {
+  handlerFor = function (index, didSucceed) {
+    return function (response) {
       var err;
       try {
         if (didSucceed) {
           tx.handleStatementSuccess(batchExecutes[index].success, response);
         } else {
-          tx.handleStatementFailure(batchExecutes[index].error, newSQLError(response));
+          tx.handleStatementFailure(
+            batchExecutes[index].error,
+            newSQLError(response)
+          );
         }
       } catch (_error) {
         err = _error;
@@ -487,10 +585,14 @@ SQLitePluginTransaction.prototype.run = function() {
     });
     i++;
   }
-  mycb = function(result) {
+  mycb = function (result) {
     var j, last, q, r, ref, res, type;
     last = result.length - 1;
-    for (i = j = 0, ref = last; 0 <= ref ? j <= ref : j >= ref; i = 0 <= ref ? ++j : --j) {
+    for (
+      i = j = 0, ref = last;
+      0 <= ref ? j <= ref : j >= ref;
+      i = 0 <= ref ? ++j : --j
+    ) {
       r = result[i];
       type = r.type;
       res = r.result;
@@ -502,37 +604,43 @@ SQLitePluginTransaction.prototype.run = function() {
       }
     }
   };
-  var myerror = function(error) {
-    console.log("batch execution error: ",error);
+  var myerror = function (error) {
+    console.log("batch execution error: ", error);
   };
 
-
-  plugin.exec("backgroundExecuteSqlBatch",{
+  plugin.exec(
+    "backgroundExecuteSqlBatch",
+    {
       dbargs: {
         dbname: this.db.dbname
       },
       executes: tropts
-    },mycb, myerror);
+    },
+    mycb,
+    myerror
+  );
 };
 
-SQLitePluginTransaction.prototype.abort = function(txFailure) {
+SQLitePluginTransaction.prototype.abort = function (txFailure) {
   var failed, succeeded, tx;
   if (this.finalized) {
     return;
   }
   tx = this;
-  succeeded = function(tx) {
+  succeeded = function (tx) {
     txLocks[tx.db.dbname].inProgress = false;
     tx.db.startNextTransaction();
     if (tx.error) {
       tx.error(txFailure);
     }
   };
-  failed = function(tx, err) {
+  failed = function (tx, err) {
     txLocks[tx.db.dbname].inProgress = false;
     tx.db.startNextTransaction();
     if (tx.error) {
-      tx.error(newSQLError("error while trying to roll back: " + err.message, err.code));
+      tx.error(
+        newSQLError("error while trying to roll back: " + err.message, err.code)
+      );
     }
   };
   this.finalized = true;
@@ -544,24 +652,26 @@ SQLitePluginTransaction.prototype.abort = function(txFailure) {
   }
 };
 
-SQLitePluginTransaction.prototype.finish = function() {
+SQLitePluginTransaction.prototype.finish = function () {
   var failed, succeeded, tx;
   if (this.finalized) {
     return;
   }
   tx = this;
-  succeeded = function(tx) {
+  succeeded = function (tx) {
     txLocks[tx.db.dbname].inProgress = false;
     tx.db.startNextTransaction();
     if (tx.success) {
       tx.success();
     }
   };
-  failed = function(tx, err) {
+  failed = function (tx, err) {
     txLocks[tx.db.dbname].inProgress = false;
     tx.db.startNextTransaction();
     if (tx.error) {
-      tx.error(newSQLError("error while trying to commit: " + err.message, err.code));
+      tx.error(
+        newSQLError("error while trying to commit: " + err.message, err.code)
+      );
     }
   };
   this.finalized = true;
@@ -573,7 +683,7 @@ SQLitePluginTransaction.prototype.finish = function() {
   }
 };
 
-SQLitePluginTransaction.prototype.abortFromQ = function(sqlerror) {
+SQLitePluginTransaction.prototype.abortFromQ = function (sqlerror) {
   if (this.error) {
     this.error(sqlerror);
   }
@@ -581,26 +691,26 @@ SQLitePluginTransaction.prototype.abortFromQ = function(sqlerror) {
 
 dblocations = ["docs", "libs", "nosync"];
 
-SQLiteFactory = function(){};
+SQLiteFactory = function () {};
 
-SQLiteFactory.prototype.DEBUG = function(debug) {
-  console.log("Setting debug to:",debug);
+SQLiteFactory.prototype.DEBUG = function (debug) {
+  console.log("Setting debug to:", debug);
   plugin.sqlitePlugin.DEBUG = debug;
 };
 
-SQLiteFactory.prototype.sqliteFeatures = function() {
+SQLiteFactory.prototype.sqliteFeatures = function () {
   return {
     isSQLitePlugin: true
   };
 };
 
-  /*
+/*
   NOTE: this function should NOT be translated from Javascript
   back to CoffeeScript by js2coffee.
   If this function is edited in Javascript then someone will
   have to translate it back to CoffeeScript by hand.
    */
-SQLiteFactory.prototype.openDatabase = argsArray(function(args) {
+SQLiteFactory.prototype.openDatabase = argsArray(function (args) {
   var dblocation, errorcb, first, okcb, openargs;
   if (args.length < 1) {
     return null;
@@ -634,23 +744,29 @@ SQLiteFactory.prototype.openDatabase = argsArray(function(args) {
   if (!!openargs.createFromLocation && openargs.createFromLocation === 1) {
     openargs.createFromResource = "1";
   }
-  if (!!openargs.androidDatabaseImplementation && openargs.androidDatabaseImplementation === 2) {
+  if (
+    !!openargs.androidDatabaseImplementation &&
+    openargs.androidDatabaseImplementation === 2
+  ) {
     openargs.androidOldDatabaseImplementation = 1;
   }
-  if (!!openargs.androidLockWorkaround && openargs.androidLockWorkaround === 1) {
+  if (
+    !!openargs.androidLockWorkaround &&
+    openargs.androidLockWorkaround === 1
+  ) {
     openargs.androidBugWorkaround = 1;
   }
   return new SQLitePlugin(openargs, okcb, errorcb);
 });
 
-SQLiteFactory.prototype.deleteDatabase = function(first,success, error) {
+SQLiteFactory.prototype.deleteDatabase = function (first, success, error) {
   var args, dblocation, mysuccess, myerror;
   args = {};
   if (first.constructor === String) {
     args.path = first;
     args.dblocation = dblocations[0];
   } else {
-    if (!(first && first['name'])) {
+    if (!(first && first["name"])) {
       throw new Error("Please specify db name");
     }
     args.path = first.name;
@@ -658,29 +774,29 @@ SQLiteFactory.prototype.deleteDatabase = function(first,success, error) {
     args.dblocation = dblocation || dblocations[0];
   }
 
-  var mysuccess = function(r) {
+  var mysuccess = function (r) {
     if (!!success) {
       return success(r);
     }
   };
-  var myerror = function(e) {
+  var myerror = function (e) {
     if (!!error) {
       return error(e);
     } else {
-      console.log("Error handler not provided: ",e);
+      console.log("Error handler not provided: ", e);
     }
   };
 
   delete SQLitePlugin.prototype.openDBs[args.path];
-  success = success || function(){};
-  error = error || function(){};
-  plugin.exec("delete",args,success,error);
+  success = success || function () {};
+  error = error || function () {};
+  plugin.exec("delete", args, success, error);
 };
 
 plugin.sqlitePlugin = {
-  SQLiteFactory : SQLiteFactory,
-  SQLitePluginTransaction : SQLitePluginTransaction,
-  SQLitePlugin : SQLitePlugin
+  SQLiteFactory: SQLiteFactory,
+  SQLitePluginTransaction: SQLitePluginTransaction,
+  SQLitePlugin: SQLitePlugin
 };
 
 module.exports = plugin.sqlitePlugin;
