@@ -3049,7 +3049,7 @@ metro-cache@0.76.8:
     metro-core "0.76.8"
     rimraf "^3.0.2"
 
-metro-config@0.76.8:
+metro-config@0.76.8, metro-config@^0.76.8:
   version "0.76.8"
   resolved "https://registry.yarnpkg.com/metro-config/-/metro-config-0.76.8.tgz#20bd5397fcc6096f98d2a813a7cecb38b8af062d"
   integrity sha512-SL1lfKB0qGHALcAk2zBqVgQZpazDYvYFGwCK1ikz0S6Y/CM2i2/HwuZN31kpX6z3mqjv/6KvlzaKoTb1otuSAA==
@@ -3786,7 +3786,7 @@ react-is@^17.0.1:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==
 
-react-native-windows@^0.72.5:
+react-native-windows@0.72.12:
   version "0.72.12"
   resolved "https://registry.yarnpkg.com/react-native-windows/-/react-native-windows-0.72.12.tgz#07f2f76e92fa9af40561dcbfd2d0a20df1ee07f5"
   integrity sha512-jvKZfIkv9iez7KQuLkC63cyH2siI85akQpKAvm4tbsecz3oF8D5OkzTQCZsUcIrMMGnmi0IKDi335Vq1mzBzzQ==

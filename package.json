@@ -1,13 +1,14 @@
 {
   "name": "react-native-sqlcipher-storage",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "SQLCipher bindings for React Native (Android & iOS)",
   "main": "src/index.js",
   "author": "Axsy",
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "start:android": "react-native run-android --root example/",
-    "start:ios": "react-native run-ios --project-path example/ios --scheme example"
+    "start:ios": "react-native run-ios --project-path example/ios --scheme example",
+    "windows": "react-native run-windows"
   },
   "repository": {
     "type": "git",
@@ -39,7 +40,8 @@
   "devDependencies": {
     "react": "^18.2.0",
     "react-native": "^0.72.5",
-    "react-native-windows": "^0.72.5"
+    "react-native-windows": "0.72.12",
+    "metro-config": "^0.76.8"
   },
   "dependencies": {
     "base-64": "^0.1.0"
