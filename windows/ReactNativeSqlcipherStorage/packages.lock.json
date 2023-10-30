@@ -16,22 +16,21 @@
       },
       "SQLitePCLRaw.bundle_e_sqlcipher": {
         "type": "Direct",
-        "requested": "[2.0.7, )",
-        "resolved": "2.0.7",
-        "contentHash": "czfakxBNmWEwZxPKG75WXwr6vaGNwLKx7YVYQ8auSttC7WKY3A4pu4yjq593BwksDPtfGdmh2LZQMlBa2tx9rw==",
+        "requested": "[2.1.6, )",
+        "resolved": "2.1.6",
+        "contentHash": "Jzre+QgRA2VpF4rbb4qQH8v6FbYDnI+hH4c0nyv842rtOetUiyWAFt+Hv1P4acJmQCC/5DobTTZWFBpczHAO5w==",
         "dependencies": {
-          "SQLitePCLRaw.core": "2.0.7",
-          "SQLitePCLRaw.lib.e_sqlcipher": "2.0.7",
-          "SQLitePCLRaw.provider.e_sqlcipher": "2.0.7"
+          "SQLitePCLRaw.lib.e_sqlcipher": "2.1.6",
+          "SQLitePCLRaw.provider.e_sqlcipher": "2.1.6"
         }
       },
       "SQLitePCLRaw.ugly": {
         "type": "Direct",
-        "requested": "[2.0.7, )",
-        "resolved": "2.0.7",
-        "contentHash": "5aQQapbxlPnFsxJApwjv4oX8Jq3OMwBToP9jP6HCFRdNciHd+VT2NdiQYLVE4LH+0TXNrBvfV/JCknCqbdyE6A==",
+        "requested": "[2.1.6, )",
+        "resolved": "2.1.6",
+        "contentHash": "v7N4+p/U0su19WWy1sIH48VSb29FNWXJPxhYIUr8nVUWytJXTVjHp2X74aP6gbjAaAaPfYDT28pLoZXNMf22dQ==",
         "dependencies": {
-          "SQLitePCLRaw.core": "2.0.7"
+          "SQLitePCLRaw.core": "2.1.6"
         }
       },
       "Microsoft.Net.Native.Compiler": {
@@ -58,12 +57,12 @@
       "Microsoft.NETCore.Platforms": {
         "type": "Transitive",
         "resolved": "2.1.0",
-        "contentHash": "ok+RPAtESz/9MUXeIEz6Lv5XAGQsaNmEYXMsgVALj4D7kqC8gveKWXWXbufLySR2fWrwZf8smyN5RmHu0e4BHA=="
+        "contentHash": "GmkKfoyerqmsHMn7OZj0AKpcBabD+GaafqphvX2Mw406IwiJRy1pKcKqdCfKJfYmkRyJ6+e+RaUylgdJoDa1jQ=="
       },
       "NETStandard.Library": {
         "type": "Transitive",
         "resolved": "2.0.3",
-        "contentHash": "st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
+        "contentHash": "548M6mnBSJWxsIlkQHfbzoYxpiYFXZZSL00p4GHYv8PkiqFBnnT68mW5mGEsA/ch9fDO9GkPgkFQpWiXZN7mAQ==",
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0"
         }
@@ -137,23 +136,23 @@
       },
       "SQLitePCLRaw.core": {
         "type": "Transitive",
-        "resolved": "2.0.7",
-        "contentHash": "2z+PXZqmwC8K+/4imlqAXBaDYlbkMfNvmDhuTIuJHPsbT9mG1HJcOsRa/Mx7DUiwgIXSj8yXbkjZ6jKHeE6PJQ==",
+        "resolved": "2.1.6",
+        "contentHash": "wO6v9GeMx9CUngAet8hbO7xdm+M42p1XeJq47ogyRoYSvNSp0NGLI+MgC0bhrMk9C17MTVFlLiN6ylyExLCc5w==",
         "dependencies": {
           "System.Memory": "4.5.3"
         }
       },
       "SQLitePCLRaw.lib.e_sqlcipher": {
         "type": "Transitive",
-        "resolved": "2.0.7",
-        "contentHash": "Zhr/A1muzkLd280t7nxLCuZBl8l+Ndfz19a0SeUsLaZjisDErCwOByepFchj2SwLfz4+gTXpRlU5Gle0EovQKQ=="
+        "resolved": "2.1.6",
+        "contentHash": "tdcyIPhu5aQVs7ITHp2cx8a6YwkT8s9Y/esS0RXJIoS+7qWP9ttCI6/OaKpJ7SqQihvMLPqodk4EVb/pFA+pbg=="
       },
       "SQLitePCLRaw.provider.e_sqlcipher": {
         "type": "Transitive",
-        "resolved": "2.0.7",
-        "contentHash": "VS/QckQMr8f0Jwl9WaK0lCEv5nXDHgvQaoKu23NxzBoBoVUSdRo/AhG+sWOjHh2Ibi1Xg3g7/W/3eX/dpEkoBA==",
+        "resolved": "2.1.6",
+        "contentHash": "8vT/22n8kYpuXNXwuIQo+PhFYesw9dzatYI4xk0nO806k8Z4S+iICe0o91KKQd8ES0cUX7ZWbd14sRxChriiSQ==",
         "dependencies": {
-          "SQLitePCLRaw.core": "2.0.7"
+          "SQLitePCLRaw.core": "2.1.6"
         }
       },
       "System.Memory": {
@@ -224,8 +223,8 @@
       },
       "SQLitePCLRaw.lib.e_sqlcipher": {
         "type": "Transitive",
-        "resolved": "2.0.7",
-        "contentHash": "Zhr/A1muzkLd280t7nxLCuZBl8l+Ndfz19a0SeUsLaZjisDErCwOByepFchj2SwLfz4+gTXpRlU5Gle0EovQKQ=="
+        "resolved": "2.1.6",
+        "contentHash": "tdcyIPhu5aQVs7ITHp2cx8a6YwkT8s9Y/esS0RXJIoS+7qWP9ttCI6/OaKpJ7SqQihvMLPqodk4EVb/pFA+pbg=="
       }
     },
     "UAP,Version=v10.0.17763/win10-arm-aot": {
@@ -249,8 +248,8 @@
       },
       "SQLitePCLRaw.lib.e_sqlcipher": {
         "type": "Transitive",
-        "resolved": "2.0.7",
-        "contentHash": "Zhr/A1muzkLd280t7nxLCuZBl8l+Ndfz19a0SeUsLaZjisDErCwOByepFchj2SwLfz4+gTXpRlU5Gle0EovQKQ=="
+        "resolved": "2.1.6",
+        "contentHash": "tdcyIPhu5aQVs7ITHp2cx8a6YwkT8s9Y/esS0RXJIoS+7qWP9ttCI6/OaKpJ7SqQihvMLPqodk4EVb/pFA+pbg=="
       }
     },
     "UAP,Version=v10.0.17763/win10-arm64-aot": {
@@ -274,8 +273,8 @@
       },
       "SQLitePCLRaw.lib.e_sqlcipher": {
         "type": "Transitive",
-        "resolved": "2.0.7",
-        "contentHash": "Zhr/A1muzkLd280t7nxLCuZBl8l+Ndfz19a0SeUsLaZjisDErCwOByepFchj2SwLfz4+gTXpRlU5Gle0EovQKQ=="
+        "resolved": "2.1.6",
+        "contentHash": "tdcyIPhu5aQVs7ITHp2cx8a6YwkT8s9Y/esS0RXJIoS+7qWP9ttCI6/OaKpJ7SqQihvMLPqodk4EVb/pFA+pbg=="
       }
     },
     "UAP,Version=v10.0.17763/win10-x64": {
@@ -299,8 +298,8 @@
       },
       "SQLitePCLRaw.lib.e_sqlcipher": {
         "type": "Transitive",
-        "resolved": "2.0.7",
-        "contentHash": "Zhr/A1muzkLd280t7nxLCuZBl8l+Ndfz19a0SeUsLaZjisDErCwOByepFchj2SwLfz4+gTXpRlU5Gle0EovQKQ=="
+        "resolved": "2.1.6",
+        "contentHash": "tdcyIPhu5aQVs7ITHp2cx8a6YwkT8s9Y/esS0RXJIoS+7qWP9ttCI6/OaKpJ7SqQihvMLPqodk4EVb/pFA+pbg=="
       }
     },
     "UAP,Version=v10.0.17763/win10-x64-aot": {
@@ -324,8 +323,8 @@
       },
       "SQLitePCLRaw.lib.e_sqlcipher": {
         "type": "Transitive",
-        "resolved": "2.0.7",
-        "contentHash": "Zhr/A1muzkLd280t7nxLCuZBl8l+Ndfz19a0SeUsLaZjisDErCwOByepFchj2SwLfz4+gTXpRlU5Gle0EovQKQ=="
+        "resolved": "2.1.6",
+        "contentHash": "tdcyIPhu5aQVs7ITHp2cx8a6YwkT8s9Y/esS0RXJIoS+7qWP9ttCI6/OaKpJ7SqQihvMLPqodk4EVb/pFA+pbg=="
       }
     },
     "UAP,Version=v10.0.17763/win10-x86": {
@@ -349,8 +348,8 @@
       },
       "SQLitePCLRaw.lib.e_sqlcipher": {
         "type": "Transitive",
-        "resolved": "2.0.7",
-        "contentHash": "Zhr/A1muzkLd280t7nxLCuZBl8l+Ndfz19a0SeUsLaZjisDErCwOByepFchj2SwLfz4+gTXpRlU5Gle0EovQKQ=="
+        "resolved": "2.1.6",
+        "contentHash": "tdcyIPhu5aQVs7ITHp2cx8a6YwkT8s9Y/esS0RXJIoS+7qWP9ttCI6/OaKpJ7SqQihvMLPqodk4EVb/pFA+pbg=="
       }
     },
     "UAP,Version=v10.0.17763/win10-x86-aot": {
@@ -374,8 +373,8 @@
       },
       "SQLitePCLRaw.lib.e_sqlcipher": {
         "type": "Transitive",
-        "resolved": "2.0.7",
-        "contentHash": "Zhr/A1muzkLd280t7nxLCuZBl8l+Ndfz19a0SeUsLaZjisDErCwOByepFchj2SwLfz4+gTXpRlU5Gle0EovQKQ=="
+        "resolved": "2.1.6",
+        "contentHash": "tdcyIPhu5aQVs7ITHp2cx8a6YwkT8s9Y/esS0RXJIoS+7qWP9ttCI6/OaKpJ7SqQihvMLPqodk4EVb/pFA+pbg=="
       }
     }
   }
