@@ -10,11 +10,13 @@ package com.axsy;
 import android.annotation.SuppressLint;
 import android.database.Cursor;
 
+import android.database.sqlite.SQLiteException;
+import android.os.CancellationSignal;
 
-import net.sqlcipher.database.SQLiteDatabase;
-import net.sqlcipher.database.SQLiteException;
-import net.sqlcipher.database.SQLiteStatement;
-import net.sqlcipher.database.SQLiteDatabaseHook;
+import net.zetetic.database.sqlcipher.SQLiteConnection;
+import net.zetetic.database.sqlcipher.SQLiteDatabase;
+import net.zetetic.database.sqlcipher.SQLiteStatement;
+import net.zetetic.database.sqlcipher.SQLiteDatabaseHook;
 
 import android.content.Context;
 import android.util.Base64;
@@ -83,7 +85,7 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
         super(reactContext);
         this.context = reactContext.getApplicationContext();
         this.threadPool = Executors.newCachedThreadPool();
-        SQLiteDatabase.loadLibs(this.context);
+        System.loadLibrary("sqlcipher");
     }
 
     /**
@@ -442,19 +444,22 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
             {
                 hook = new SQLiteDatabaseHook()
                 {
-                    public void preKey(SQLiteDatabase database)
+                    public void preKey(SQLiteConnection connection)
                     {
                     }
 
-                    public void postKey(SQLiteDatabase database)
+                    public void postKey(SQLiteConnection connection)
                     {
-                        database.rawQuery("PRAGMA cipher_migrate", null);
+                        CancellationSignal cancelSignal = new CancellationSignal();
+                        connection.executeRaw("PRAGMA cipher_migrate", null, cancelSignal);
                     }
                 };
 
             }
 
-            SQLiteDatabase mydb = (hook == null) ? SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null) : SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null, hook);
+            SQLiteDatabase mydb = (hook == null) ? 
+                SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null, null, null) : 
+                SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null, null, hook);
 
             if (cbc != null) // needed for Android locking/closing workaround
                 cbc.success("database open");
