@@ -238,7 +238,7 @@ namespace react_native_sqlcipher_storage
     }
 
     [ReactModule("SQLite")]
-    internal sealed class SQLiteModule
+    internal sealed class ReactNativeModule
     {
         void Initialise()
         {
