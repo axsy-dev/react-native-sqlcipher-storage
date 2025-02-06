@@ -49,10 +49,6 @@ android {
         versionCode 1
         versionName "1.0"
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
     lintOptions {
         abortOnError false
     }
@@ -75,8 +71,8 @@ repositories {
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'net.zetetic:sqlcipher-android:4.5.2@aar'
-    implementation 'androidx.sqlite:sqlite:2.1.0'
+    implementation 'net.zetetic:android-database-sqlcipher:4.4.2@aar'
+    implementation "androidx.sqlite:sqlite:2.0.1"
 }
 
 
