@@ -30,9 +30,8 @@ var config2 = [
   [true, "SQLiteFactory", "openDatabaseCb", false, false],
 ];
 
-
 var originalFns = {};
-config.forEach(entry => {
+config.forEach((entry) => {
   let [returnValueExpected, prototype, fn] = entry;
   let originalFn = plugin[prototype].prototype[fn];
   originalFns[prototype + "." + fn] = originalFn;
@@ -48,52 +47,53 @@ function enablePromiseRuntime(enable) {
 }
 
 function createCallbackRuntime() {
-  config.forEach(entry => {
+  config.forEach((entry) => {
     let [
       returnValueExpected,
       prototype,
       fn,
       argsNeedPadding,
-      reverseCallbacks
+      reverseCallbacks,
     ] = entry;
     plugin[prototype].prototype[fn] = originalFns[prototype + "." + fn];
   });
 }
 
 function createExtraCallbackRuntime() {
-  config2.forEach(entry => {
+  config2.forEach((entry) => {
     let [
       returnValueExpected,
       prototype,
       fn,
       argsNeedPadding,
-      reverseCallbacks
+      reverseCallbacks,
     ] = entry;
-    plugin[prototype].prototype[fn] = originalFns[prototype + "." + fn.slice(0, -2)];
+    plugin[prototype].prototype[fn] =
+      originalFns[prototype + "." + fn.slice(0, -2)];
   });
 }
 
 function createPromiseRuntime() {
-  config.forEach(entry => {
+  config.forEach((entry) => {
     let [
       returnValueExpected,
       prototype,
       fn,
       argsNeedPadding,
-      reverseCallbacks
+      reverseCallbacks,
     ] = entry;
     let originalFn = plugin[prototype].prototype[fn];
-    plugin[prototype].prototype[fn] = function(...args) {
+    plugin[prototype].prototype[fn] = function (...args) {
       if (argsNeedPadding && args.length == 1) {
         args.push([]);
       }
       let retValue;
       var promise = new Promise(
-        function(resolve, reject) {
-          let success = function(...args) {
-          return returnValueExpected ? resolve(retValue) : resolve(args);
+        function (resolve, reject) {
+          let success = function (...args) {
+            return returnValueExpected ? resolve(retValue) : resolve(args);
           };
-          let error = function(err) {
+          let error = function (err) {
             reject(err);
             return false;
           };
@@ -113,4 +113,6 @@ function createPromiseRuntime() {
 
 SQLiteFactory.prototype.enablePromise = enablePromiseRuntime;
 
-module.exports = new SQLiteFactory();
+const factory = new SQLiteFactory();
+
+export default factory;
