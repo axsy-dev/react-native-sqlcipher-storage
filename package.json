@@ -38,7 +38,8 @@
     "react-native": "*",
     "react-native-web": "*",
     "react-native-windows": "*",
-    "react-dom": "*"
+    "react-dom": "*",
+    "electron-log": "*"
   },
   "devDependencies": {
     "react": "^18.2.0",
