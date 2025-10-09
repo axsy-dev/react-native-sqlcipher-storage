@@ -5,9 +5,8 @@ const { existsSync, unlinkSync } = require("node:fs");
 const log = require("electron-log/main");
 
 class SQLite {
-  databases = new Map();
-
-  dbLocation = app.getPath("userData");
+  #databases = new Map();
+  #dbLocation = app.getPath("userData");
 
   /**
    *
@@ -18,14 +17,14 @@ class SQLite {
   open = async (event, options) => {
     log.info(`open ${JSON.stringify(options)}`);
     return new Promise((resolve, reject) => {
-      const openPath = path.resolve(path.join(this.dbLocation, options.name));
+      const openPath = path.resolve(path.join(this.#dbLocation, options.name));
       log.info(`*** sqlite open ${openPath}`);
 
       const db = new sqlite3.Database(openPath, (err) => {
         if (err) {
           reject(err);
         } else {
-          this.databases.set(options.name, db);
+          this.#databases.set(options.name, db);
           log.info(`*** sqlite open - success`, db);
           resolve(db);
         }
@@ -42,7 +41,7 @@ class SQLite {
   close = async (event, options) => {
     log.info(`*** close - begin`);
     return new Promise((resolve, reject) => {
-      const db = this.databases.get(options.path);
+      const db = this.#databases.get(options.path);
       if (db) {
         log.info(`*** close ${options.path}`);
         db.close((err) => {
@@ -50,7 +49,7 @@ class SQLite {
             reject(err);
           } else {
             log.info(`*** close - success`);
-            this.databases.delete(options.path);
+            this.#databases.delete(options.path);
             resolve();
           }
         });
@@ -68,28 +67,27 @@ class SQLite {
    */
   backgroundExecuteSqlBatch = (event, options) => {
     return new Promise(async (resolve, reject) => {
-      const db = this.databases.get(options.dbargs.dbname);
+      const db = this.#databases.get(options.dbargs.dbname);
       if (!db) {
         reject("Database does not exist");
         return;
       }
 
-      const executes = options.executes;
-
-      let allTotalChanges = 0;
       const results = [];
+      const executes = options.executes;
 
       for (const e of executes) {
         const execute = e;
         const qid = execute.qid;
         const sql = execute.sql;
         const params = execute.params;
-        const { rows, totalChanges, insertId } = await this.#all(
+
+        const { rows, rowsAffected, insertId } = await this.#all(
           db,
           sql,
           params
         );
-        const rowsAffected = totalChanges;
+
         const resultInfo = {
           qid,
           type: "success",
@@ -99,6 +97,7 @@ class SQLite {
             insertId,
           },
         };
+
         results.push(resultInfo);
       }
 
@@ -106,6 +105,13 @@ class SQLite {
     });
   };
 
+  /**
+   *
+   * @param {sqlite3.Database} db
+   * @param {string} sql
+   * @param {any[]} params
+   * @returns {Promise<{rows: any[], rowsAffected: number, insertId: number}>}
+   */
   #all = (db, sql, params) => {
     return new Promise((resolve, reject) => {
       const statement = db.prepare(sql, function (err) {
@@ -117,9 +123,9 @@ class SQLite {
               reject(err);
             } else {
               const result = {
-                totalChanges: this.changes,
-                insertID: this.lastID,
-                rows,
+                rowsAffected: this.changes,
+                insertId: this.lastID,
+                rows: rows || [],
               };
               this.finalize((err) => {
                 if (err) {
@@ -141,14 +147,14 @@ class SQLite {
    * @param {{path: string}} options
    */
   delete = async (event, options) => {
-    if (this.databases.has(options.path)) {
+    if (this.#databases.has(options.path)) {
       await this.close(event, options);
       this.#deleteDatabase(options.path);
     }
   };
 
   #deleteDatabase = (dbname) => {
-    const dbPath = path.resolve(path.join(this.dbLocation, dbname));
+    const dbPath = path.resolve(path.join(this.#dbLocation, dbname));
     if (existsSync(dbPath)) {
       unlinkSync(dbPath);
     }
