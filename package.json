@@ -34,19 +34,19 @@
   "homepage": "https://github.com/axsy-dev/react-native-sqlcipher-storage",
   "peerDependencies": {
     "electron": "*",
+    "electron-log": "*",
     "react": "*",
+    "react-dom": "*",
     "react-native": "*",
     "react-native-web": "*",
-    "react-native-windows": "*",
-    "react-dom": "*",
-    "electron-log": "*"
+    "react-native-windows": "*"
   },
   "devDependencies": {
     "react": "^18.2.0",
+    "react-dom": "^19.2.0",
     "react-native": "^0.73.0",
     "react-native-web": "^0.21.1",
-    "react-native-windows": "^0.73.0",
-    "react-dom": "^19.2.0"
+    "react-native-windows": "^0.73.0"
   },
   "dependencies": {
     "@journeyapps/sqlcipher": "^5.3.1",

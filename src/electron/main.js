@@ -5,9 +5,6 @@ const { existsSync, unlinkSync } = require("node:fs");
 const log = require("electron-log/main");
 
 class SQLite {
-  /**
-   * @type {Map<string, sqlite3.Database>}
-   */
   databases = new Map();
 
   dbLocation = app.getPath("userData");
@@ -40,7 +37,7 @@ class SQLite {
    *
    * @param {Event} event
    * @param {{path: string}} options
-   * @returns {Promise}
+   * @returns {Promise<void>}
    */
   close = async (event, options) => {
     log.info(`*** close - begin`);
@@ -69,8 +66,8 @@ class SQLite {
    * @param {{dbargs: {dbname: string}, executes: Array<{qid: string, sql: string, params: any[]}>} options
    * @returns
    */
-  backgroundExecuteSqlBatch = async (event, options) => {
-    return new Promise((resolve, reject) => {
+  backgroundExecuteSqlBatch = (event, options) => {
+    return new Promise(async (resolve, reject) => {
       const db = this.databases.get(options.dbargs.dbname);
       if (!db) {
         reject("Database does not exist");
@@ -79,7 +76,7 @@ class SQLite {
 
       const executes = options.executes;
 
-      let totalChanges = db.totalChanges;
+      let allTotalChanges = 0;
       const results = [];
 
       for (const e of executes) {
@@ -87,22 +84,54 @@ class SQLite {
         const qid = execute.qid;
         const sql = execute.sql;
         const params = execute.params;
-        const rows = db.all(sql, params);
-        const rowsAffected = db.totalChanges - totalChanges;
-        totalChanges = db.totalChanges;
+        const { rows, totalChanges, insertId } = await this.#all(
+          db,
+          sql,
+          params
+        );
+        const rowsAffected = totalChanges;
         const resultInfo = {
           qid,
           type: "success",
           result: {
             rowsAffected,
             rows,
-            insertId: db.insertId,
+            insertId,
           },
         };
         results.push(resultInfo);
       }
 
       resolve(results);
+    });
+  };
+
+  #all = (db, sql, params) => {
+    return new Promise((resolve, reject) => {
+      const statement = db.prepare(sql, function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          this.run(params, function (err, rows) {
+            if (err) {
+              reject(err);
+            } else {
+              const result = {
+                totalChanges: this.changes,
+                insertID: this.lastID,
+                rows,
+              };
+              this.finalize((err) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(result);
+                }
+              });
+            }
+          });
+        }
+      });
     });
   };
 
@@ -114,11 +143,11 @@ class SQLite {
   delete = async (event, options) => {
     if (this.databases.has(options.path)) {
       await this.close(event, options);
-      await this.#deleteDatabase(options.path);
+      this.#deleteDatabase(options.path);
     }
   };
 
-  #deleteDatabase = async (dbname) => {
+  #deleteDatabase = (dbname) => {
     const dbPath = path.resolve(path.join(this.dbLocation, dbname));
     if (existsSync(dbPath)) {
       unlinkSync(dbPath);
@@ -132,5 +161,8 @@ export function handleSqliteEvents() {
   ipcMain.handle("sqlite:open", sqlite.open);
   ipcMain.handle("sqlite:close", sqlite.close);
   ipcMain.handle("sqlite:delete", sqlite.delete);
-  ipcMain.handle;
+  ipcMain.handle(
+    "sqlite:backgroundExecuteSqlBatch",
+    sqlite.backgroundExecuteSqlBatch
+  );
 }
