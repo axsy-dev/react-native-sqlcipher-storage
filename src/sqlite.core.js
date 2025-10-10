@@ -15,7 +15,7 @@
 
 import base64 from "base-64";
 import { NativeModules, Platform } from "react-native";
-import { electronAPI } from "./electron";
+import { electronAPI } from "../electron/renderer";
 
 var mod = {};
 

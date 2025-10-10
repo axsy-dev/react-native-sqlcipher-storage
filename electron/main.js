@@ -1,8 +1,8 @@
-const { ipcMain, app, Event } = require("electron");
-const sqlite3 = require("@journeyapps/sqlcipher");
-const path = require("path");
-const { existsSync, unlinkSync } = require("node:fs");
-const log = require("electron-log/main");
+import { ipcMain, app, Event } from "electron";
+import sqlite3 from "@journeyapps/sqlcipher";
+import path from "path";
+import { existsSync, unlinkSync } from "fs";
+import log from "electron-log/main";
 
 class SQLite {
   #databases = new Map();

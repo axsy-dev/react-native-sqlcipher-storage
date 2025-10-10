@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "browser": "src/index.js",
   "author": "Axsy",
+  "types": "react-native-sqlcipher-storage.d.ts",
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "start:android": "react-native run-android --root example/",
