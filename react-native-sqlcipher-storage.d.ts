@@ -18,6 +18,12 @@ export interface ErrorResult {
 
 export interface Transaction {
   db: Database;
+  executeSql(
+    sql: string,
+    params?: SQLParams,
+    successCallback?: SQLSuccessCallback,
+    errorCallback?: SQLErrorCallback
+  ): Promise<SuccessResult[]>;
 }
 
 export interface Database {
