@@ -20,7 +20,7 @@ class SQLite {
       const openPath = path.resolve(path.join(this.#dbLocation, options.name));
       log.info(`*** sqlite open ${openPath}`);
 
-      const db = new sqlite3.Database(openPath, (err) => {
+      const db = new sqlite3.Database(openPath, err => {
         if (err) {
           reject(err);
         } else {
@@ -44,7 +44,7 @@ class SQLite {
       const db = this.#databases.get(options.path);
       if (db) {
         log.info(`*** close ${options.path}`);
-        db.close((err) => {
+        db.close(err => {
           if (err) {
             reject(err);
           } else {
@@ -94,8 +94,8 @@ class SQLite {
           result: {
             rowsAffected,
             rows,
-            insertId,
-          },
+            insertId
+          }
         };
 
         results.push(resultInfo);
@@ -125,9 +125,9 @@ class SQLite {
               const result = {
                 rowsAffected: this.changes,
                 insertId: this.lastID,
-                rows: rows || [],
+                rows: rows || []
               };
-              this.finalize((err) => {
+              this.finalize(err => {
                 if (err) {
                   reject(err);
                 } else {
@@ -153,7 +153,7 @@ class SQLite {
     }
   };
 
-  #deleteDatabase = (dbname) => {
+  #deleteDatabase = dbname => {
     const dbPath = path.resolve(path.join(this.#dbLocation, dbname));
     if (existsSync(dbPath)) {
       unlinkSync(dbPath);

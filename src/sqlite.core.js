@@ -136,7 +136,7 @@ SQLitePlugin = function (openargs, openSuccess, openError) {
 };
 
 SQLitePlugin.prototype.databaseFeatures = {
-  isSQLitePluginDatabase: true,
+  isSQLitePluginDatabase: true
 };
 
 SQLitePlugin.prototype.openDBs = {};
@@ -145,7 +145,7 @@ SQLitePlugin.prototype.addTransaction = function (t) {
   if (!txLocks[this.dbname]) {
     txLocks[this.dbname] = {
       queue: [],
-      inProgress: false,
+      inProgress: false
     };
   }
   txLocks[this.dbname].queue.push(t);
@@ -413,13 +413,13 @@ SQLitePluginTransaction.prototype.executeSql = function (
         " after its success or failure handlers are called. If you are using a Promise to handle callbacks, be aware that" +
         " implementations following the A+ standard adhere to run-to-completion semantics and so Promise resolution occurs" +
         " on a subsequent tick and therefore after the transaction commits.",
-      code: 11,
+      code: 11
     };
     return;
   }
   if (that.readOnly && READ_ONLY_REGEX.test(sql)) {
     that.handleStatementFailure(error, {
-      message: "invalid sql for a read-only transaction",
+      message: "invalid sql for a read-only transaction"
     });
     return;
   }
@@ -478,7 +478,7 @@ SQLitePluginTransaction.prototype.addStatement = function (
     success: success,
     error: error,
     sql: sql,
-    params: params,
+    params: params
   });
 };
 
@@ -505,10 +505,10 @@ SQLitePluginTransaction.prototype.handleStatementSuccess = function (
       raw: function () {
         return rows.slice();
       },
-      length: rows.length,
+      length: rows.length
     },
     rowsAffected: response.rowsAffected || 0,
-    insertId: response.insertId || void 0,
+    insertId: response.insertId || void 0
   };
   // console.log('handler response payload:',payload);
   handler(this, payload);
@@ -585,12 +585,12 @@ SQLitePluginTransaction.prototype.run = function () {
     request = batchExecutes[i];
     mycbmap[i] = {
       success: handlerFor(i, true),
-      error: handlerFor(i, false),
+      error: handlerFor(i, false)
     };
     tropts.push({
       qid: 1111,
       sql: request.sql,
-      params: request.params,
+      params: request.params
     });
     i++;
   }
@@ -621,9 +621,9 @@ SQLitePluginTransaction.prototype.run = function () {
     "backgroundExecuteSqlBatch",
     {
       dbargs: {
-        dbname: this.db.dbname,
+        dbname: this.db.dbname
       },
-      executes: tropts,
+      executes: tropts
     },
     mycb,
     myerror
@@ -709,7 +709,7 @@ SQLiteFactory.prototype.DEBUG = function (debug) {
 
 SQLiteFactory.prototype.sqliteFeatures = function () {
   return {
-    isSQLitePlugin: true,
+    isSQLitePlugin: true
   };
 };
 
@@ -730,7 +730,7 @@ SQLiteFactory.prototype.openDatabase = argsArray(function (args) {
   errorcb = null;
   if (first.constructor === String) {
     openargs = {
-      name: first,
+      name: first
     };
     if (args.length >= 5) {
       okcb = args[4];
@@ -805,7 +805,7 @@ SQLiteFactory.prototype.deleteDatabase = function (first, success, error) {
 plugin.sqlitePlugin = {
   SQLiteFactory: SQLiteFactory,
   SQLitePluginTransaction: SQLitePluginTransaction,
-  SQLitePlugin: SQLitePlugin,
+  SQLitePlugin: SQLitePlugin
 };
 
 module.exports = plugin.sqlitePlugin;

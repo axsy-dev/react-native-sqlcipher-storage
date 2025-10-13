@@ -44,6 +44,6 @@ export function initSqliteAPI() {
       } catch (e) {
         error(e);
       }
-    },
+    }
   });
 }

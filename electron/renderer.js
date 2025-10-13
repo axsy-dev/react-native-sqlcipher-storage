@@ -10,5 +10,5 @@ export const electronAPI = {
   },
   backgroundExecuteSqlBatch: (options, success, error) => {
     window.sqliteapi.backgroundExecuteSqlBatch(options, success, error);
-  },
+  }
 };
