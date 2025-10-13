@@ -36,3 +36,5 @@ export interface Database {
 
   transaction(callback: (tx: Transaction) => void): void;
 }
+
+export type SQLResultSet = SuccessResult[];
