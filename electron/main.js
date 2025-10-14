@@ -1,4 +1,4 @@
-import { ipcMain, app, Event } from "electron";
+import { ipcMain, app } from "electron";
 import sqlite3 from "@journeyapps/sqlcipher";
 import path from "path";
 import { existsSync, unlinkSync } from "fs";
@@ -62,47 +62,66 @@ class SQLite {
   /**
    *
    * @param {Event} event
-   * @param {{dbargs: {dbname: string}, executes: Array<{qid: string, sql: string, params: any[]}>} options
-   * @returns
+   * @param {{dbargs: {dbname: string}, executes: Array<{qid: string, sql: string, params: any[]}>}} options
+   * @returns {Promise<{
+   *  qid: string,
+   *  type: "success" | "error",
+   *  result: string | {
+   *    rowsAffected: number,
+   *    rows: any[]
+   *  }
+   * }[]>}
    */
-  backgroundExecuteSqlBatch = (event, options) => {
-    return new Promise(async (resolve, reject) => {
-      const db = this.#databases.get(options.dbargs.dbname);
-      if (!db) {
-        reject("Database does not exist");
-        return;
-      }
+  backgroundExecuteSqlBatch = async (event, options) => {
+    const db = this.#databases.get(options.dbargs.dbname);
+    if (!db) {
+      throw new Error("Database does not exist");
+    }
 
-      const results = [];
-      const executes = options.executes;
+    const results = [];
+    const executes = options.executes;
 
-      for (const e of executes) {
-        const execute = e;
-        const qid = execute.qid;
-        const sql = execute.sql;
-        const params = execute.params;
+    for (const e of executes) {
+      const execute = e;
+      const qid = execute.qid;
+      const sql = execute.sql;
+      const params = execute.params;
 
+      let resultInfo = { qid };
+
+      try {
         const { rows, rowsAffected, insertId } = await this.#all(
           db,
           sql,
           params
         );
 
-        const resultInfo = {
-          qid,
+        const hasInsertId = rowsAffected > 0 && insertId !== 0;
+
+        resultInfo = {
+          ...resultInfo,
           type: "success",
           result: {
             rowsAffected,
-            rows,
-            insertId
+            rows
           }
         };
-
-        results.push(resultInfo);
+        if (hasInsertId) {
+          resultInfo.result.insertId = insertId;
+        }
+      } catch (e) {
+        resultInfo = {
+          ...resultInfo,
+          type: "error",
+          message: e,
+          result: e
+        };
       }
 
-      resolve(results);
-    });
+      results.push(resultInfo);
+    }
+
+    return results;
   };
 
   /**
@@ -114,28 +133,48 @@ class SQLite {
    */
   #all = (db, sql, params) => {
     return new Promise((resolve, reject) => {
-      const statement = db.prepare(sql, function (err) {
+      db.prepare(sql, function (err) {
         if (err) {
           reject(err);
         } else {
-          this.run(params, function (err, rows) {
-            if (err) {
-              reject(err);
-            } else {
-              const result = {
-                rowsAffected: this.changes,
-                insertId: this.lastID,
-                rows: rows || []
-              };
-              this.finalize(err => {
-                if (err) {
-                  reject(err);
-                } else {
-                  resolve(result);
-                }
-              });
-            }
-          });
+          if (sql.toLocaleLowerCase().startsWith("select")) {
+            this.all(params, function (err, rows) {
+              if (err) {
+                reject(err);
+              } else {
+                const result = {
+                  rowsAffected: this.changes,
+                  insertId: this.lastID,
+                  rows: rows || []
+                };
+                this.finalize(err => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve(result);
+                  }
+                });
+              }
+            });
+          } else {
+            this.run(params, function (err) {
+              if (err) {
+                reject(err);
+              } else {
+                const result = {
+                  rowsAffected: this.changes,
+                  insertId: this.lastID
+                };
+                this.finalize(err => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve(result);
+                  }
+                });
+              }
+            });
+          }
         }
       });
     });
