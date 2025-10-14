@@ -18,23 +18,29 @@ export interface ErrorResult {
 
 export interface Transaction {
   db: Database;
-  executeSql(
-    sql: string,
-    params?: SQLParams,
-    successCallback?: SQLSuccessCallback,
-    errorCallback?: SQLErrorCallback
-  ): Promise<SuccessResult[]>;
+  executeSql(sql: string, params?: SQLParams): Promise<SuccessResult[]>;
 }
 
 export interface Database {
-  executeSql(
-    sql: string,
-    params?: SQLParams,
-    successCallback?: SQLSuccessCallback,
-    errorCallback?: SQLErrorCallback
-  ): Promise<SuccessResult[]>;
-
+  executeSql(sql: string, params?: SQLParams): Promise<SuccessResult[]>;
   transaction(callback: (tx: Transaction) => void): void;
+  close(): Promise<void>;
 }
 
 export type SQLResultSet = SuccessResult[];
+
+type OpenDatabaseOptions = {
+  name: string;
+  key: string;
+};
+
+interface Sqlite {
+  DEBUG(enable: boolean): void;
+  enablePromise(enable: boolean): void;
+  openDatabase(options: OpenDatabaseOptions): Promise<Database>;
+  deleteDatabase(): Promise<void>;
+}
+
+declare const Sqlite: Sqlite;
+
+export default Sqlite;
