@@ -2,7 +2,6 @@ import { ipcMain, app } from "electron";
 import sqlite3 from "@journeyapps/sqlcipher";
 import { join, resolve } from "path";
 import { existsSync, unlinkSync } from "fs";
-import log from "electron-log/main";
 
 /**
  * @import {Database, Statement, RunResult} from "@journeyapps/sqlcipher"
@@ -32,19 +31,13 @@ class SQLite {
    * @returns {Promise<void>}
    */
   open = async (event, options) => {
-    log.info(`open ${JSON.stringify(options)}`);
-    try {
-      const openPath = resolve(join(this.#dbLocation, options.name));
-      const db = await AsyncDatabase.newDatabase(openPath);
-      if (options.key) {
-        await db.run(`PRAGMA key = '${options.key}'`);
-        await db.run("PRAGMA cipher_migrate");
-      }
-      this.#databases.set(options.name, db);
-    } catch (e) {
-      log.info("Database failed to open");
-      throw e;
+    const openPath = resolve(join(this.#dbLocation, options.name));
+    const db = await AsyncDatabase.newDatabase(openPath);
+    if (options.key) {
+      await db.run(`PRAGMA key = '${options.key}'`);
+      await db.run("PRAGMA cipher_migrate");
     }
+    this.#databases.set(options.name, db);
   };
 
   /**
@@ -53,7 +46,6 @@ class SQLite {
    * @returns {Promise<void>}
    */
   close = async (event, options) => {
-    log.info(`*** close - begin`);
     const db = this.#databases.get(options.path);
     if (db) {
       await db.close();

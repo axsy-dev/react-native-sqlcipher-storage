@@ -13,7 +13,6 @@
  * See http://opensource.org/licenses/alphabetical for full text.
  */
 
-import base64 from "base-64";
 import { NativeModules, Platform } from "react-native";
 import { electronAPI } from "../electron/renderer";
 
