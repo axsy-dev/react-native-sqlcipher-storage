@@ -27,7 +27,7 @@ export function initSqliteAPI() {
     delete: async (options, success, error) => {
       console.log("sqliteapi:delete");
       try {
-        const result = await ipcRenderer.invoke("sqlite:delete", options);
+        await ipcRenderer.invoke("sqlite:delete", options);
         success();
       } catch (e) {
         error(e);
