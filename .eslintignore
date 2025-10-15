@@ -1,0 +1,4 @@
+example-prev
+example/**/*.js
+src/index.js
+src/sqlite.core.js

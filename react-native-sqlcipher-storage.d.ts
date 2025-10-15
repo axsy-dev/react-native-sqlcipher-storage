@@ -38,7 +38,7 @@ interface Sqlite {
   DEBUG(enable: boolean): void;
   enablePromise(enable: boolean): void;
   openDatabase(options: OpenDatabaseOptions): Promise<Database>;
-  deleteDatabase(): Promise<void>;
+  deleteDatabase(name: string): Promise<void>;
 }
 
 declare const Sqlite: Sqlite;

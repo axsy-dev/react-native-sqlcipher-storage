@@ -1,5 +1,23 @@
-const fs = require('fs');
-const path = require('path');
+const project = (() => {
+  try {
+    const { configureProjects } = require("react-native-test-app");
+    return configureProjects({
+      android: {
+        sourceDir: "android",
+      },
+      ios: {
+        sourceDir: "ios",
+      },
+      windows: {
+        sourceDir: "windows",
+        solutionFile: "windows/Example.sln",
+      },
+    });
+  } catch (_) {
+    return undefined;
+  }
+})();
+
 module.exports = {
-  reactNativePath:  fs.realpathSync(path.resolve(require.resolve('react-native-windows/package.json'), '..')),
+  ...(project ? { project } : undefined),
 };

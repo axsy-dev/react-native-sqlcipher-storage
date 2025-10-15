@@ -1,6 +1,6 @@
 import { ipcMain, app } from "electron";
 import sqlite3 from "@journeyapps/sqlcipher";
-import { join, resolve } from "path";
+import path from "path";
 import { existsSync, unlinkSync } from "fs";
 
 /**
@@ -31,7 +31,7 @@ class SQLite {
    * @returns {Promise<void>}
    */
   open = async (event, options) => {
-    const openPath = resolve(join(this.#dbLocation, options.name));
+    const openPath = path.resolve(path.join(this.#dbLocation, options.name));
     const db = await AsyncDatabase.newDatabase(openPath);
     if (options.key) {
       await db.run(`PRAGMA key = '${options.key}'`);
@@ -113,12 +113,12 @@ class SQLite {
         if (hasInsertId) {
           resultInfo.result.insertId = insertId;
         }
-      } catch (e) {
+      } catch (err) {
         resultInfo = {
           ...resultInfo,
           type: "error",
-          message: e,
-          result: e
+          message: err,
+          result: err
         };
       }
 
@@ -163,7 +163,7 @@ class SQLite {
    * @param {string} dbname
    */
   #deleteDatabase(dbname) {
-    const dbPath = resolve(join(this.#dbLocation, dbname));
+    const dbPath = path.resolve(path.join(this.#dbLocation, dbname));
     if (existsSync(dbPath)) {
       unlinkSync(dbPath);
     }
