@@ -18,7 +18,10 @@ export interface ErrorResult {
 
 export interface Transaction {
   db: Database;
-  executeSql(sql: string, params?: SQLParams): Promise<SuccessResult[]>;
+  executeSql(
+    sql: string,
+    params?: SQLParams
+  ): Promise<[Transaction, SuccessResult]>;
 }
 
 export interface Database {
@@ -32,6 +35,7 @@ export type SQLResultSet = SuccessResult[];
 type OpenDatabaseOptions = {
   name: string;
   key: string;
+  createFromLocation?: 1;
 };
 
 interface Sqlite {
