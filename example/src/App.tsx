@@ -7,7 +7,9 @@ import {
   FlatList,
   SafeAreaView
 } from "react-native";
-import SQLite, { Database, Transaction } from "react-native-sqlcipher-storage";
+
+import SQLite from "react-native-sqlcipher-storage";
+import type { Database, Transaction } from "react-native-sqlcipher-storage";
 
 SQLite.DEBUG(true);
 SQLite.enablePromise(true);

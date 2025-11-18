@@ -16,7 +16,7 @@
 import { NativeModules, Platform } from "react-native";
 import { electronAPI } from "../electron/renderer";
 
-var mod = {};
+let mod = {};
 
 if (Platform.OS === "web") {
   mod = electronAPI;
@@ -24,30 +24,20 @@ if (Platform.OS === "web") {
   mod = NativeModules.SQLite;
 }
 
-var DB_STATE_INIT,
-  DB_STATE_OPEN,
-  READ_ONLY_REGEX,
-  SQLiteFactory,
-  SQLitePlugin,
-  SQLitePluginTransaction,
-  argsArray,
-  dblocations,
-  newSQLError,
-  nextTick,
-  root,
-  txLocks;
+const DB_STATE_INIT = "INIT";
+const DB_STATE_OPEN = "OPEN";
+const READ_ONLY_REGEX = /^\s*(?:drop|delete|insert|update|create)\s/i;
+const dblocations = ["docs", "libs", "nosync"];
+const nextTick =
+  window.setImmediate ||
+  function (fun) {
+    window.setTimeout(fun, 0);
+  };
 
-var plugin = {};
+let txLocks = {};
+const plugin = {};
 
-READ_ONLY_REGEX = /^\s*(?:drop|delete|insert|update|create)\s/i;
-
-DB_STATE_INIT = "INIT";
-
-DB_STATE_OPEN = "OPEN";
-
-txLocks = {};
-
-newSQLError = function (error, code) {
+const newSQLError = function (error, code) {
   var sqlError;
   sqlError = error;
   if (!code) {
@@ -73,18 +63,12 @@ newSQLError = function (error, code) {
   return sqlError;
 };
 
-nextTick =
-  window.setImmediate ||
-  function (fun) {
-    window.setTimeout(fun, 0);
-  };
-
 /*
   Utility that avoids leaking the arguments object. See
   https://www.npmjs.org/package/argsarray
  */
 
-argsArray = function (fun) {
+const argsArray = function (fun) {
   return function () {
     var args, i, len;
     len = arguments.length;
@@ -108,7 +92,7 @@ plugin.exec = function (method, options, success, error) {
   mod[method](options, success, error);
 };
 
-SQLitePlugin = function (openargs, openSuccess, openError) {
+function SQLitePlugin(openargs, openSuccess, openError) {
   var dbname;
   if (!(openargs && openargs["name"])) {
     throw newSQLError(
@@ -132,7 +116,7 @@ SQLitePlugin = function (openargs, openSuccess, openError) {
       console.log(e.message);
     });
   this.open(this.openSuccess, this.openError);
-};
+}
 
 SQLitePlugin.prototype.databaseFeatures = {
   isSQLitePluginDatabase: true
@@ -350,7 +334,7 @@ SQLitePlugin.prototype.executeSql = function (
   );
 };
 
-SQLitePluginTransaction = function (db, fn, error, success, txlock, readOnly) {
+function SQLitePluginTransaction(db, fn, error, success, txlock, readOnly) {
   if (typeof fn !== "function") {
     /*
     This is consistent with the implementation in Chrome -- it
@@ -380,7 +364,7 @@ SQLitePluginTransaction = function (db, fn, error, success, txlock, readOnly) {
       );
     });
   }
-};
+}
 
 SQLitePluginTransaction.prototype.start = function () {
   var err;
@@ -697,9 +681,7 @@ SQLitePluginTransaction.prototype.abortFromQ = function (sqlerror) {
   }
 };
 
-dblocations = ["docs", "libs", "nosync"];
-
-SQLiteFactory = function () {};
+export function SQLiteFactory() {}
 
 SQLiteFactory.prototype.DEBUG = function (debug) {
   console.log("Setting debug to:", debug);
@@ -807,4 +789,4 @@ plugin.sqlitePlugin = {
   SQLitePlugin: SQLitePlugin
 };
 
-module.exports = plugin.sqlitePlugin;
+export default plugin.sqlitePlugin;
