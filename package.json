@@ -7,6 +7,20 @@
   "browser": "src/index.js",
   "author": "Axsy",
   "types": "react-native-sqlcipher-storage.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.js",
+      "types": "./react-native-sqlcipher-storage.d.ts"
+    },
+    "./preload": {
+      "source": "./electron/preload.js",
+      "types": "./electron/preload.d.ts"
+    },
+    "./main": {
+      "source": "./electron/main.js",
+      "types": "./electron/main.d.ts"
+    }
+  },
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "start:android": "react-native run-android --root example/",
