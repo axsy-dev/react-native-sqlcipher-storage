@@ -7,6 +7,7 @@
   "browser": "src/index.js",
   "author": "Axsy",
   "types": "react-native-sqlcipher-storage.d.ts",
+  "type": "module",
   "exports": {
     ".": {
       "source": "./src/index.js",
