@@ -1,7 +1,5 @@
-type PreloadInit = {
+export declare const db: {
   preload: {
-    init: () => void;
+    init(): void;
   };
 };
-
-export declare const db: PreloadInit;

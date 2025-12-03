@@ -1,7 +1,5 @@
-type MainInit = {
+export declare const db: {
   main: {
-    init: () => void;
+    init(): void;
   };
 };
-
-export declare const db: MainInit;
