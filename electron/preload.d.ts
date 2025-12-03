@@ -4,4 +4,4 @@ type PreloadInit = {
   };
 };
 
-declare const db: PreloadInit;
+export declare const db: PreloadInit;

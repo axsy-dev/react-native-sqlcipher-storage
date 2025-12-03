@@ -4,4 +4,4 @@ type MainInit = {
   };
 };
 
-declare const db: MainInit;
+export declare const db: MainInit;
