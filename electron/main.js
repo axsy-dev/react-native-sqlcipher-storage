@@ -107,8 +107,8 @@ class SQLite {
           type: "success",
           result: {
             rowsAffected,
-            rows
-          }
+            rows,
+          },
         };
         if (hasInsertId) {
           resultInfo.result.insertId = insertId;
@@ -118,7 +118,7 @@ class SQLite {
           ...resultInfo,
           type: "error",
           message: err,
-          result: err
+          result: err,
         };
       }
 
@@ -144,13 +144,13 @@ class SQLite {
       result = {
         rowsAffected: all.changes,
         insertId: all.lastID,
-        rows: all.rows
+        rows: all.rows,
       };
     } else {
       const all = await statement.run(params);
       result = {
         rowsAffected: all.changes,
-        insertId: all.insertId
+        insertId: all.insertId,
       };
     }
 
@@ -192,7 +192,7 @@ class AsyncDatabase {
    */
   static newDatabase(openPath) {
     return new Promise((resolve, reject) => {
-      const db = new sqlite3.Database(openPath, err => {
+      const db = new sqlite3.Database(openPath, (err) => {
         if (err) {
           reject(err);
         } else {
@@ -223,7 +223,7 @@ class AsyncDatabase {
    */
   close() {
     return new Promise((resolve, reject) => {
-      this.#db.close(err => {
+      this.#db.close((err) => {
         if (err) {
           reject(err);
         } else {
@@ -300,7 +300,7 @@ class AsyncStatement {
    */
   finalize() {
     return new Promise((resolve, reject) => {
-      this.#statement.finalize(err => {
+      this.#statement.finalize((err) => {
         if (err) {
           reject(err);
         } else {
@@ -313,12 +313,16 @@ class AsyncStatement {
 
 const sqlite = new SQLite();
 
-export function handleSqliteEvents() {
-  ipcMain.handle("sqlite:open", sqlite.open);
-  ipcMain.handle("sqlite:close", sqlite.close);
-  ipcMain.handle("sqlite:delete", sqlite.delete);
-  ipcMain.handle(
-    "sqlite:backgroundExecuteSqlBatch",
-    sqlite.backgroundExecuteSqlBatch
-  );
-}
+export const db = {
+  main: {
+    init() {
+      ipcMain.handle("sqlite:open", sqlite.open);
+      ipcMain.handle("sqlite:close", sqlite.close);
+      ipcMain.handle("sqlite:delete", sqlite.delete);
+      ipcMain.handle(
+        "sqlite:backgroundExecuteSqlBatch",
+        sqlite.backgroundExecuteSqlBatch
+      );
+    },
+  },
+};

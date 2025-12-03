@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 
-export function initSqliteAPI() {
+function initSqliteAPI() {
   contextBridge.exposeInMainWorld("sqliteapi", {
     open: async (options, success, error) => {
       console.log("sqliteapi:open");
@@ -44,6 +44,14 @@ export function initSqliteAPI() {
       } catch (e) {
         error(e);
       }
-    }
+    },
   });
 }
+
+export const db = {
+  preload: {
+    init() {
+      initSqliteAPI();
+    },
+  },
+};
