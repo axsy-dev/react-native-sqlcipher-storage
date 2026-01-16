@@ -4,6 +4,7 @@
   "description": "SQLCipher bindings for React Native (Android & iOS)",
   "author": "Axsy",
   "type": "module",
+  "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
     "./preload": "./electron/preload.js",
