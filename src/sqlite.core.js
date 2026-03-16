@@ -14,12 +14,20 @@
  */
 
 import { NativeModules, Platform } from "react-native";
-import { electronAPI } from "../electron/renderer";
 
 let mod = {};
 
 if (Platform.OS === "web") {
-  mod = electronAPI;
+  mod = {
+    open: (options, success, error) =>
+      window.sqliteapi.open(options, success, error),
+    close: (options, success, error) =>
+      window.sqliteapi.close(options, success, error),
+    delete: (options, success, error) =>
+      window.sqliteapi.delete(options, success, error),
+    backgroundExecuteSqlBatch: (options, success, error) =>
+      window.sqliteapi.backgroundExecuteSqlBatch(options, success, error),
+  };
 } else {
   mod = NativeModules.SQLite;
 }
@@ -262,7 +270,6 @@ SQLitePlugin.prototype.open = function (success, error) {
 };
 
 SQLitePlugin.prototype.close = function (success, error) {
-  var mysuccess, myerror;
   if (this.dbname in this.openDBs) {
     if (txLocks[this.dbname] && txLocks[this.dbname].inProgress) {
       console.log("cannot close: transaction is in progress");

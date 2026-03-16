@@ -34,7 +34,8 @@ class SQLite {
     const openPath = path.resolve(path.join(this.#dbLocation, options.name));
     const db = await AsyncDatabase.newDatabase(openPath);
     if (options.key) {
-      await db.run(`PRAGMA key = '${options.key}'`);
+      const escapedKey = options.key.replace(/'/g, "''");
+      await db.run(`PRAGMA key = '${escapedKey}'`);
       await db.run("PRAGMA cipher_migrate");
     }
     this.#databases.set(options.name, db);
@@ -60,8 +61,8 @@ class SQLite {
   delete = async (event, options) => {
     if (this.#databases.has(options.path)) {
       await this.close(event, options);
-      this.#deleteDatabase(options.path);
     }
+    this.#deleteDatabase(options.path);
   };
 
   /**
@@ -114,11 +115,12 @@ class SQLite {
           resultInfo.result.insertId = insertId;
         }
       } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
         resultInfo = {
           ...resultInfo,
           type: "error",
-          message: err,
-          result: err,
+          message,
+          result: message,
         };
       }
 
@@ -139,7 +141,14 @@ class SQLite {
 
     let result;
 
-    if (sql.toLocaleLowerCase().startsWith("select")) {
+    const trimmed = sql.trimStart().toLocaleLowerCase();
+    const returnsRows =
+      trimmed.startsWith("select") ||
+      trimmed.startsWith("pragma") ||
+      trimmed.startsWith("explain") ||
+      trimmed.startsWith("with");
+
+    if (returnsRows) {
       const all = await statement.all(params);
       result = {
         rowsAffected: all.changes,
@@ -150,7 +159,8 @@ class SQLite {
       const all = await statement.run(params);
       result = {
         rowsAffected: all.changes,
-        insertId: all.insertId,
+        insertId: all.lastID,
+        rows: [],
       };
     }
 

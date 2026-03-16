@@ -39,12 +39,20 @@
   },
   "homepage": "https://github.com/axsy-dev/react-native-sqlcipher-storage",
   "peerDependencies": {
+    "@journeyapps/sqlcipher": "^5.3.1",
     "electron": "*",
     "react": "*",
     "react-dom": "*",
     "react-native": "*",
     "react-native-web": "*",
     "react-native-windows": "*"
+  },
+  "peerDependenciesMeta": {
+    "@journeyapps/sqlcipher": { "optional": true },
+    "electron": { "optional": true },
+    "react-dom": { "optional": true },
+    "react-native-web": { "optional": true },
+    "react-native-windows": { "optional": true }
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
@@ -75,9 +83,7 @@
     "react-test-renderer": "18.2.0",
     "typescript": "5.0.4"
   },
-  "dependencies": {
-    "@journeyapps/sqlcipher": "^5.3.1"
-  },
+  "dependencies": {},
   "files": [
     "src",
     "react-native-sqlcipher-storage.podspec",
