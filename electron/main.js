@@ -1,7 +1,7 @@
-import { ipcMain, app } from "electron";
+import {ipcMain, app} from "electron";
 import sqlite3 from "@journeyapps/sqlcipher";
 import path from "path";
-import { existsSync, unlinkSync } from "fs";
+import {existsSync, unlinkSync} from "fs";
 
 /**
  * @import {Database, Statement, RunResult} from "@journeyapps/sqlcipher"
@@ -102,14 +102,10 @@ class SQLite {
       const sql = execute.sql;
       const params = execute.params;
 
-      let resultInfo = { qid };
+      let resultInfo = {qid};
 
       try {
-        const { rows, rowsAffected, insertId } = await this.#all(
-          db,
-          sql,
-          params
-        );
+        const {rows, rowsAffected, insertId} = await this.#all(db, sql, params);
 
         const hasInsertId = rowsAffected > 0 && insertId !== 0;
 
@@ -294,7 +290,7 @@ class AsyncStatement {
         if (err) {
           reject(err);
         } else {
-          resolve({ lastID: this.lastID, changes: this.changes, rows });
+          resolve({lastID: this.lastID, changes: this.changes, rows});
         }
       });
     });
@@ -342,7 +338,7 @@ export const db = {
       ipcMain.handle("sqlite:delete", sqlite.delete);
       ipcMain.handle(
         "sqlite:backgroundExecuteSqlBatch",
-        sqlite.backgroundExecuteSqlBatch
+        sqlite.backgroundExecuteSqlBatch,
       );
     },
   },

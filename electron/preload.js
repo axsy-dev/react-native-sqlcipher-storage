@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from "electron";
+import {contextBridge, ipcRenderer} from "electron";
 
 function initSqliteAPI() {
   contextBridge.exposeInMainWorld("sqliteapi", {

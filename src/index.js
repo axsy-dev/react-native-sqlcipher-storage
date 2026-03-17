@@ -8,7 +8,7 @@
  * See http://opensource.org/licenses/alphabetical for full text.
  */
 
-import plugin, { SQLiteFactory } from "./sqlite.core.js";
+import plugin, {SQLiteFactory} from "./sqlite.core.js";
 
 var config = [
   [false, "SQLitePlugin", "transaction", false, true],
@@ -17,7 +17,7 @@ var config = [
   [false, "SQLitePlugin", "executeSql", true, false],
   [false, "SQLitePluginTransaction", "executeSql", true, false],
   [false, "SQLiteFactory", "deleteDatabase", false, false],
-  [true, "SQLiteFactory", "openDatabase", false, false]
+  [true, "SQLiteFactory", "openDatabase", false, false],
 ];
 
 var config2 = [
@@ -27,11 +27,11 @@ var config2 = [
   [false, "SQLitePlugin", "executeSqlCb", true, false],
   [false, "SQLitePluginTransaction", "executeSqlCb", true, false],
   [false, "SQLiteFactory", "deleteDatabaseCb", false, false],
-  [true, "SQLiteFactory", "openDatabaseCb", false, false]
+  [true, "SQLiteFactory", "openDatabaseCb", false, false],
 ];
 
 var originalFns = {};
-config.forEach(entry => {
+config.forEach((entry) => {
   let [returnValueExpected, prototype, fn] = entry;
   let originalFn = plugin[prototype].prototype[fn];
   originalFns[prototype + "." + fn] = originalFn;
@@ -47,26 +47,26 @@ function enablePromiseRuntime(enable) {
 }
 
 function createCallbackRuntime() {
-  config.forEach(entry => {
+  config.forEach((entry) => {
     let [
       returnValueExpected,
       prototype,
       fn,
       argsNeedPadding,
-      reverseCallbacks
+      reverseCallbacks,
     ] = entry;
     plugin[prototype].prototype[fn] = originalFns[prototype + "." + fn];
   });
 }
 
 function createExtraCallbackRuntime() {
-  config2.forEach(entry => {
+  config2.forEach((entry) => {
     let [
       returnValueExpected,
       prototype,
       fn,
       argsNeedPadding,
-      reverseCallbacks
+      reverseCallbacks,
     ] = entry;
     plugin[prototype].prototype[fn] =
       originalFns[prototype + "." + fn.slice(0, -2)];
@@ -74,13 +74,13 @@ function createExtraCallbackRuntime() {
 }
 
 function createPromiseRuntime() {
-  config.forEach(entry => {
+  config.forEach((entry) => {
     let [
       returnValueExpected,
       prototype,
       fn,
       argsNeedPadding,
-      reverseCallbacks
+      reverseCallbacks,
     ] = entry;
     let originalFn = plugin[prototype].prototype[fn];
     plugin[prototype].prototype[fn] = function (...args) {
@@ -101,9 +101,9 @@ function createPromiseRuntime() {
             this,
             ...args,
             reverseCallbacks ? error : success,
-            reverseCallbacks ? success : error
+            reverseCallbacks ? success : error,
           );
-        }.bind(this)
+        }.bind(this),
       );
 
       return promise;

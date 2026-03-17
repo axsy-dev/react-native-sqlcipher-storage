@@ -14,7 +14,9 @@
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "start:android": "react-native run-android --root example/mobile/",
     "start:ios": "react-native run-ios --project-path example/mobile/ios --scheme example",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{js,ts,d.ts}\" \"electron/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.{js,ts,d.ts}\" \"electron/**/*.js\""
   },
   "repository": {
     "type": "git",

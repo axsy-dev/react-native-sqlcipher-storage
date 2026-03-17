@@ -21,14 +21,14 @@ export interface Transaction {
   db: Database;
   executeSql(
     sql: string,
-    params?: SQLParams
+    params?: SQLParams,
   ): Promise<[Transaction, SuccessResult]>;
 }
 
 export interface Database {
   executeSql(
     sql: string,
-    params?: SQLParams
+    params?: SQLParams,
   ): Promise<[Transaction, SuccessResult]>;
   transaction(callback: (tx: Transaction) => void): Promise<Transaction>;
   readTransaction(callback: (tx: Transaction) => void): Promise<Transaction>;
@@ -50,7 +50,9 @@ interface Sqlite {
   DEBUG(enable: boolean): void;
   enablePromise(enable: boolean): void;
   openDatabase(options: OpenDatabaseOptions): Promise<Database>;
-  deleteDatabase(name: string | { name: string; location?: number }): Promise<void>;
+  deleteDatabase(
+    name: string | {name: string; location?: number},
+  ): Promise<void>;
 }
 
 declare const Sqlite: Sqlite;
