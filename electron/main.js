@@ -26,6 +26,14 @@ class SQLite {
   #dbLocation = app.getPath("userData");
 
   /**
+   * @param {object} options
+   * @returns {string}
+   */
+  #dbKey(options) {
+    return options.name ?? options.path ?? options.dbargs?.dbname;
+  }
+
+  /**
    * @param {Event} event
    * @param {{name: string, key: string}} options
    * @returns {Promise<void>}
@@ -38,7 +46,7 @@ class SQLite {
       await db.run(`PRAGMA key = '${escapedKey}'`);
       await db.run("PRAGMA cipher_migrate");
     }
-    this.#databases.set(options.name, db);
+    this.#databases.set(this.#dbKey(options), db);
   };
 
   /**
@@ -47,10 +55,11 @@ class SQLite {
    * @returns {Promise<void>}
    */
   close = async (event, options) => {
-    const db = this.#databases.get(options.path);
+    const key = this.#dbKey(options);
+    const db = this.#databases.get(key);
     if (db) {
       await db.close();
-      this.#databases.delete(options.path);
+      this.#databases.delete(key);
     }
   };
 
@@ -59,10 +68,11 @@ class SQLite {
    * @param {{path: string}} options
    */
   delete = async (event, options) => {
-    if (this.#databases.has(options.path)) {
+    const key = this.#dbKey(options);
+    if (this.#databases.has(key)) {
       await this.close(event, options);
     }
-    this.#deleteDatabase(options.path);
+    this.#deleteDatabase(key);
   };
 
   /**
@@ -78,7 +88,7 @@ class SQLite {
    * }[]>}
    */
   backgroundExecuteSqlBatch = async (event, options) => {
-    const db = this.#databases.get(options.dbargs.dbname);
+    const db = this.#databases.get(this.#dbKey(options));
     if (!db) {
       throw new Error("Database does not exist");
     }
@@ -138,35 +148,36 @@ class SQLite {
    */
   async #all(db, sql, params) {
     const statement = await db.prepare(sql);
+    try {
+      let result;
 
-    let result;
+      const trimmed = sql.trimStart().toLocaleLowerCase();
+      const returnsRows =
+        trimmed.startsWith("select") ||
+        trimmed.startsWith("pragma") ||
+        trimmed.startsWith("explain") ||
+        trimmed.startsWith("with");
 
-    const trimmed = sql.trimStart().toLocaleLowerCase();
-    const returnsRows =
-      trimmed.startsWith("select") ||
-      trimmed.startsWith("pragma") ||
-      trimmed.startsWith("explain") ||
-      trimmed.startsWith("with");
+      if (returnsRows) {
+        const all = await statement.all(params);
+        result = {
+          rowsAffected: all.changes,
+          insertId: all.lastID,
+          rows: all.rows,
+        };
+      } else {
+        const all = await statement.run(params);
+        result = {
+          rowsAffected: all.changes,
+          insertId: all.lastID,
+          rows: [],
+        };
+      }
 
-    if (returnsRows) {
-      const all = await statement.all(params);
-      result = {
-        rowsAffected: all.changes,
-        insertId: all.lastID,
-        rows: all.rows,
-      };
-    } else {
-      const all = await statement.run(params);
-      result = {
-        rowsAffected: all.changes,
-        insertId: all.lastID,
-        rows: [],
-      };
+      return result;
+    } finally {
+      await statement.finalize();
     }
-
-    await statement.finalize();
-
-    return result;
   }
 
   /**

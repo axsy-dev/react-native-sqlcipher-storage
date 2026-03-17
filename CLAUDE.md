@@ -18,7 +18,7 @@ The library exposes a single JS API that delegates to platform-specific native m
 
 ### JavaScript layer (src/)
 
-- **`src/sqlite.core.js`** — Core runtime: `SQLitePlugin` (database handle), `SQLitePluginTransaction` (transaction queue with lock management), and `SQLiteFactory` (open/delete databases). Dispatches calls to native modules via `plugin.exec()`. On web/Electron, routes to `electronAPI`; on native platforms, routes to `NativeModules.SQLite`.
+- **`src/sqlite.core.js`** — Core runtime: `SQLitePlugin` (database handle), `SQLitePluginTransaction` (transaction queue with lock management), and `SQLiteFactory` (open/delete databases). Dispatches calls to native modules via `plugin.exec()`. On web/Electron, routes to `window.sqliteapi` (exposed by the preload script); on native platforms, routes to `NativeModules.SQLite`.
 - **`src/index.js`** — Promise/callback adapter. Wraps `sqlite.core.js` classes so that calling `enablePromise(true)` switches the API from callback-style to Promise-style. Exports a singleton `SQLiteFactory` instance as the default export.
 - **`src/index.d.ts`** — TypeScript type definitions.
 
