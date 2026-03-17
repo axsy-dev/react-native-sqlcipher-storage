@@ -37,9 +37,10 @@ const DB_STATE_OPEN = "OPEN";
 const READ_ONLY_REGEX = /^\s*(?:drop|delete|insert|update|create)\s/i;
 const dblocations = ["docs", "libs", "nosync"];
 const nextTick =
-  window.setImmediate ||
+  (typeof window !== "undefined" && window.setImmediate) ||
+  (typeof setImmediate === "function" && setImmediate) ||
   function (fun) {
-    window.setTimeout(fun, 0);
+    setTimeout(fun, 0);
   };
 
 let txLocks = {};
@@ -605,6 +606,7 @@ SQLitePluginTransaction.prototype.run = function () {
   };
   var myerror = function (error) {
     console.log("batch execution error: ", error);
+    tx.abort(error);
   };
 
   plugin.exec(
