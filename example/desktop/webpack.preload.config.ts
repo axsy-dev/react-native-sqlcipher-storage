@@ -1,8 +1,10 @@
+import webpack from "webpack";
 import type { Configuration } from "webpack";
 
 import { plugins } from "./webpack.plugins";
 
 export const preloadConfig: Configuration = {
+  target: "electron-preload",
   devtool: "inline-source-map",
   module: {
     rules: [
@@ -43,11 +45,12 @@ export const preloadConfig: Configuration = {
       },
     ],
   },
-  plugins,
-  node: {
-    __dirname: true,
-    __filename: true,
-  },
+  plugins: [
+    ...plugins,
+    new webpack.DefinePlugin({
+      __dirname: JSON.stringify(""),
+    }),
+  ],
   resolve: {
     extensions: [".js", ".ts", ".jsx", ".tsx", ".css", ".json"],
   },

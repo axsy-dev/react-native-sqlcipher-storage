@@ -12,8 +12,8 @@
   },
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "start:android": "react-native run-android --root example/",
-    "start:ios": "react-native run-ios --project-path example/ios --scheme example",
+    "start:android": "react-native run-android --root example/mobile/",
+    "start:ios": "react-native run-ios --project-path example/mobile/ios --scheme example",
     "lint": "eslint ."
   },
   "repository": {
