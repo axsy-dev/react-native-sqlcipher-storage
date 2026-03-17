@@ -9,11 +9,17 @@
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "jsx": "react",
     "paths": {
-      "*": ["../node_modules/*"]
+      "*": ["../node_modules/*"],
+      "react-native-sqlcipher-storage/main": [
+        "../node_modules/react-native-sqlcipher-storage/electron/main"
+      ],
+      "react-native-sqlcipher-storage/preload": [
+        "../node_modules/react-native-sqlcipher-storage/electron/preload"
+      ]
     }
   },
   "include": ["**/*"]

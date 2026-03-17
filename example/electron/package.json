@@ -17,13 +17,13 @@
     "email": "colin.carter@axsy.com"
   },
   "license": "MIT",
-    "dependencies": {
+  "dependencies": {
     "electron-better-ipc": "^2.0.1",
     "electron-log": "^5.4.3",
     "electron-squirrel-startup": "^1.0.1",
     "react": "18.2.0",
     "react-dom": "^18.2.0",
-    "react-native-sqlcipher-storage": "file:../",
+    "react-native-sqlcipher-storage": "file:../..",
     "react-native": "0.73.11",
     "react-native-web": "^0.21.1",
     "react-native-windows": "^0.73.0"
@@ -56,5 +56,4 @@
     "ts-loader": "^9.5.4",
     "typescript": "~4.5.4"
   }
-  
 }

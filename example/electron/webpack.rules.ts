@@ -20,11 +20,19 @@ export const rules: Required<ModuleOptions>["rules"] = [
   },
   {
     test: /\.(js|mjs|jsx|ts|tsx)$/,
-    exclude: /\.(test|spec)\.(ts|tsx|js|jsx)$/i,
+    exclude: [
+      /node_modules(?![/\\]react-native|[/\\]react-native-sqlcipher-storage|[/\\]@react-native)/,
+      /\.(test|spec)\.(ts|tsx|js|jsx)$/i,
+    ],
     use: {
       loader: "babel-loader",
       options: {
-        presets: ["module:@react-native/babel-preset"],
+        presets: [
+          [
+            "module:@react-native/babel-preset",
+            { disableImportExportTransform: true },
+          ],
+        ],
         plugins: [
           [
             "@babel/plugin-transform-flow-strip-types",
