@@ -16,7 +16,9 @@
     "start:ios": "react-native run-ios --project-path example/mobile/ios --scheme example",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{js,ts,d.ts}\" \"electron/**/*.js\"",
-    "format:check": "prettier --check \"src/**/*.{js,ts,d.ts}\" \"electron/**/*.js\""
+    "format:check": "prettier --check \"src/**/*.{js,ts,d.ts}\" \"electron/**/*.js\"",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",
