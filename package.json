@@ -18,7 +18,8 @@
     "format": "prettier --write \"src/**/*.{js,ts,d.ts}\" \"electron/**/*.js\"",
     "format:check": "prettier --check \"src/**/*.{js,ts,d.ts}\" \"electron/**/*.js\"",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "check": "npm run lint && npm run format:check && npm run test"
   },
   "repository": {
     "type": "git",

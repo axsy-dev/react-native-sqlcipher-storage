@@ -202,7 +202,7 @@ describe("SQLitePluginTransaction constructor", () => {
 
   it("calls error callback for non-function fn when error handler provided", () => {
     const errorCb = jest.fn();
-    SQLitePluginTransaction({dbname: "x"}, null, errorCb);
+    new SQLitePluginTransaction({dbname: "x"}, null, errorCb);
     expect(errorCb).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringMatching(/transaction expected a function/),

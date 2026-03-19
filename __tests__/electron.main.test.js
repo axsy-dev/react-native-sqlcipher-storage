@@ -87,10 +87,14 @@ describe("SQLite operations via IPC handlers", () => {
       expect(sqlite3.Database).toHaveBeenCalled();
     });
 
-    it("sets PRAGMA key with escaped quotes", async () => {
+    it("sets PRAGMA key with escaped quotes and runs cipher_migrate", async () => {
       await handlers["sqlite:open"]({}, {name: "key.db", key: "my'secret"});
       expect(mockDbInstance.run).toHaveBeenCalledWith(
         "PRAGMA key = 'my''secret'",
+        expect.any(Function),
+      );
+      expect(mockDbInstance.run).toHaveBeenCalledWith(
+        "PRAGMA cipher_migrate",
         expect.any(Function),
       );
     });
