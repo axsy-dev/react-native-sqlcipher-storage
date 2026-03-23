@@ -104,7 +104,6 @@
     "ios",
     "windows",
     "common",
-    "electron",
-    "react-native-sqlcipher-storage.d.ts"
+    "electron"
   ]
 }

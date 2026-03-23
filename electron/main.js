@@ -53,12 +53,19 @@ class SQLite {
   open = async (event, options) => {
     const openPath = this.#safePath(options.name);
     const db = await AsyncDatabase.newDatabase(openPath);
-    if (options.key) {
-      const escapedKey = options.key.replace(/'/g, "''");
-      await db.run(`PRAGMA key = '${escapedKey}'`);
-      await db.run("PRAGMA cipher_migrate");
+    try {
+      if (options.key) {
+        const escapedKey = options.key.replace(/'/g, "''");
+        await db.run(`PRAGMA key = '${escapedKey}'`);
+        if (options.migrate !== false) {
+          await db.run("PRAGMA cipher_migrate");
+        }
+      }
+      this.#databases.set(this.#dbKey(options), db);
+    } catch (err) {
+      await db.close();
+      throw err;
     }
-    this.#databases.set(this.#dbKey(options), db);
   };
 
   /**
@@ -159,12 +166,13 @@ class SQLite {
     try {
       let result;
 
-      const trimmed = sql.trimStart().toLocaleLowerCase();
+      const trimmed = sql.trimStart().toLowerCase();
+      const cteDmlPattern = /^with\s+.+\)\s*(insert|update|delete)\s/is;
       const returnsRows =
         trimmed.startsWith("select") ||
         trimmed.startsWith("pragma") ||
         trimmed.startsWith("explain") ||
-        trimmed.startsWith("with");
+        (trimmed.startsWith("with") && !cteDmlPattern.test(trimmed));
 
       if (returnsRows) {
         const all = await statement.all(params);

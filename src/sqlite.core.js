@@ -18,6 +18,11 @@ import {NativeModules, Platform} from "react-native";
 let mod = {};
 
 if (Platform.OS === "web") {
+  if (typeof window === "undefined" || !window.sqliteapi) {
+    throw new Error(
+      "window.sqliteapi is not available. This code path requires Electron with the preload script initialized via db.preload.init().",
+    );
+  }
   mod = {
     open: (options, success, error) =>
       window.sqliteapi.open(options, success, error),
