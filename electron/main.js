@@ -34,12 +34,24 @@ class SQLite {
   }
 
   /**
+   * @param {string} name
+   * @returns {string}
+   */
+  #safePath(name) {
+    const resolved = path.resolve(path.join(this.#dbLocation, name));
+    if (!resolved.startsWith(this.#dbLocation + path.sep) && resolved !== this.#dbLocation) {
+      throw new Error("Invalid database name: path traversal detected");
+    }
+    return resolved;
+  }
+
+  /**
    * @param {Event} event
    * @param {{name: string, key: string}} options
    * @returns {Promise<void>}
    */
   open = async (event, options) => {
-    const openPath = path.resolve(path.join(this.#dbLocation, options.name));
+    const openPath = this.#safePath(options.name);
     const db = await AsyncDatabase.newDatabase(openPath);
     if (options.key) {
       const escapedKey = options.key.replace(/'/g, "''");
@@ -180,7 +192,7 @@ class SQLite {
    * @param {string} dbname
    */
   #deleteDatabase(dbname) {
-    const dbPath = path.resolve(path.join(this.#dbLocation, dbname));
+    const dbPath = this.#safePath(dbname);
     if (existsSync(dbPath)) {
       unlinkSync(dbPath);
     }

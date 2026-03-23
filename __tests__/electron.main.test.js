@@ -87,6 +87,12 @@ describe("SQLite operations via IPC handlers", () => {
       expect(sqlite3.Database).toHaveBeenCalled();
     });
 
+    it("rejects path traversal in database name", async () => {
+      await expect(
+        handlers["sqlite:open"]({}, {name: "../../../etc/passwd"}),
+      ).rejects.toThrow("path traversal");
+    });
+
     it("sets PRAGMA key with escaped quotes and runs cipher_migrate", async () => {
       await handlers["sqlite:open"]({}, {name: "key.db", key: "my'secret"});
       expect(mockDbInstance.run).toHaveBeenCalledWith(
@@ -114,6 +120,12 @@ describe("SQLite operations via IPC handlers", () => {
       await handlers["sqlite:delete"]({}, {path: "del-test.db"});
       expect(mockDbInstance.close).toHaveBeenCalled();
       expect(unlinkSync).toHaveBeenCalled();
+    });
+
+    it("rejects path traversal in delete", async () => {
+      await expect(
+        handlers["sqlite:delete"]({}, {path: "../../etc/passwd"}),
+      ).rejects.toThrow("path traversal");
     });
 
     it("deletes file even if not open", async () => {
