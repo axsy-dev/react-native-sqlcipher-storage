@@ -48,8 +48,7 @@
     "react": "*",
     "react-dom": "*",
     "react-native": "*",
-    "react-native-web": "*",
-    "react-native-windows": "*"
+    "react-native-web": "*"
   },
   "peerDependenciesMeta": {
     "electron": {
@@ -90,7 +89,6 @@
     "react-native": "^0.73.0",
     "react-native-test-app": "^4.4.12",
     "react-native-web": "^0.21.1",
-    "react-native-windows": "^0.73.0",
     "react-test-renderer": "18.2.0",
     "typescript": "5.0.4"
   },
@@ -102,7 +100,6 @@
     "react-native-sqlcipher-storage.podspec",
     "android",
     "ios",
-    "windows",
     "common",
     "electron"
   ]
