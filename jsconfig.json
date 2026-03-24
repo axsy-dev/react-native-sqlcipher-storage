@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "module": "es6",
+    "moduleResolution": "node"
+  },
+  "include": ["./src/**/*", "./electron/**/*"],
+  "exclude": ["node_modules"]
+}
