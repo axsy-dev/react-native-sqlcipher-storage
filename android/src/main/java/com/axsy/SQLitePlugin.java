@@ -9,12 +9,13 @@ package com.axsy;
 
 import android.annotation.SuppressLint;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 
 
-import net.sqlcipher.database.SQLiteDatabase;
-import net.sqlcipher.database.SQLiteException;
-import net.sqlcipher.database.SQLiteStatement;
-import net.sqlcipher.database.SQLiteDatabaseHook;
+import net.zetetic.database.sqlcipher.SQLiteConnection;
+import net.zetetic.database.sqlcipher.SQLiteDatabase;
+import net.zetetic.database.sqlcipher.SQLiteStatement;
+import net.zetetic.database.sqlcipher.SQLiteDatabaseHook;
 
 import android.content.Context;
 import android.util.Base64;
@@ -23,6 +24,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.lang.IllegalArgumentException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -83,7 +85,7 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
         super(reactContext);
         this.context = reactContext.getApplicationContext();
         this.threadPool = Executors.newCachedThreadPool();
-        SQLiteDatabase.loadLibs(this.context);
+        System.loadLibrary("sqlcipher");
     }
 
     /**
@@ -442,19 +444,23 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
             {
                 hook = new SQLiteDatabaseHook()
                 {
-                    public void preKey(SQLiteDatabase database)
+                    public void preKey(SQLiteConnection connection)
                     {
                     }
 
-                    public void postKey(SQLiteDatabase database)
+                    public void postKey(SQLiteConnection connection)
                     {
-                        database.rawQuery("PRAGMA cipher_migrate", null);
+                        // cipher_migrate returns a row, so execute() would reject it.
+                        connection.executeForString("PRAGMA cipher_migrate", null, null);
                     }
                 };
 
             }
 
-            SQLiteDatabase mydb = (hook == null) ? SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null) : SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null, hook);
+            // Must stay the bare UTF-8 passphrase (no terminator, not a raw key): android-database-sqlcipher 4.4.2
+            // passed exactly these bytes to sqlite3_key, and any other encoding derives a different key for existing databases.
+            byte[] password = key == null ? null : key.getBytes(StandardCharsets.UTF_8);
+            SQLiteDatabase mydb = SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), password, null, null, hook);
 
             if (cbc != null) // needed for Android locking/closing workaround
                 cbc.success("database open");

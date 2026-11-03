@@ -13,7 +13,7 @@
 
 def DEFAULT_COMPILE_SDK_VERSION = 28
 def DEFAULT_BUILD_TOOLS_VERSION = '28.0.3'
-def DEFAULT_MIN_SDK_VERSION = 16
+def DEFAULT_MIN_SDK_VERSION = 21
 def DEFAULT_TARGET_SDK_VERSION = 28
 
 def safeExtGet(prop, fallback) {
@@ -71,8 +71,11 @@ repositories {
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'net.zetetic:android-database-sqlcipher:4.4.2@aar'
-    implementation "androidx.sqlite:sqlite:2.0.1"
+    // 4.4.2's libsqlcipher.so ends GNU_RELRO mid 16 KB page, on the page .data starts on, so 16 KB devices
+    // fault writing its globals. 4.14+ swaps OpenSSL for libtomcrypt; check speed before moving past 4.13.
+    implementation 'net.zetetic:sqlcipher-android:4.13.0@aar'
+    // @aar drops the POM's transitive runtime dependency; its classes implement these interfaces.
+    implementation "androidx.sqlite:sqlite:2.2.0"
 }
 
 
