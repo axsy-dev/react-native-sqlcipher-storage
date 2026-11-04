@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.js",
     "./preload": "./electron/preload.js",
-    "./main": "./electron/main.js"
+    "./main": "./electron/main.js",
+    "./core": "./electron/core.js"
   },
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
