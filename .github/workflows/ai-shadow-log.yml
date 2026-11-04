@@ -1,0 +1,50 @@
+# Shadow-log collector — thin caller for the reusable workflow in axsy-skills.
+# Installed from `.github/scripts/shadow-log/install/caller.example.yml` in axsy-dev/axsy-skills.
+#
+# Log-only measurement: it collects review-depth metrics (Metric B) for each merged PR and joins the
+# AI reviewer's log-only decision where there is one (Metric A). It NEVER comments, labels or
+# reviews — the token it reads with is read-only. Install it alongside the reviewer's caller: without
+# it, a repo's AI review rounds are recorded but the per-PR metrics half is not.
+#
+# Pinned to the moving major tag `v1` in both places, so collector fixes arrive without a PR here.
+name: ai-shadow-log
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "how many most-recently-merged PRs to collect"
+        required: false
+        default: "50"
+        type: string
+
+# One collector run per repo at a time. The reusable workflow serialises per PR, but a dispatch
+# backfill keys its group on the run id, so it does not serialise against the per-PR runs whose
+# documents it also writes. Serialising here makes the backfill exclusive.
+concurrency:
+  group: ai-shadow-log-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    # Merged PRs only, matching the historical backfill's population.
+    #
+    # `SHADOW_LOG_ENABLED` is the off switch: set the repository variable to `false` to stop
+    # collecting here. It writes to a store shared with every other repo, so it needs one.
+    if: >-
+      vars.SHADOW_LOG_ENABLED != 'false'
+      && (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true)
+    # Ceiling for the called workflow; see the note in the reviewer's caller. The collector is
+    # log-only, so read is all it should ever have.
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: axsy-dev/axsy-skills/.github/workflows/ai-shadow-log.yml@v1
+    secrets: inherit
+    with:
+      repository: ${{ github.repository }}
+      pr_number: ${{ github.event.pull_request.number }}
+      limit: ${{ inputs.limit || '50' }}
+      shadow_log_ref: v1
