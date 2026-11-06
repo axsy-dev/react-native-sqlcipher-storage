@@ -13,7 +13,7 @@ React Native SQLCipher Storage — encrypted SQLite (SQLCipher) bindings for Rea
 - **Run example (iOS):** `npm run start:ios`
 - **Android tests** (run from `example/mobile/android`, after `npm install` in `example/mobile`):
   - JVM: `./gradlew :react-native-sqlcipher-storage:testDebugUnitTest`
-  - Device, 4.4.2 parity (`LegacyParityTest`), on a 4 KB-page emulator: `./gradlew :react-native-sqlcipher-storage:installDebugAndroidTest && adb shell am instrument -w com.axsy.test/androidx.test.runner.AndroidJUnitRunner`. `connectedDebugAndroidTest` runs 0 tests: AGP 8.1's test runner crashes reading current adb's protobuf. React Native 0.73's own native libraries crash on 16 KB-page devices, so the suite can't run there.
+  - Device, 4.4.2 parity (`LegacyParityTest`): `./gradlew :react-native-sqlcipher-storage:connectedDebugAndroidTest`. It runs on every connected device, so run it on both a 4 KB-page and a 16 KB-page emulator.
 
 ## Architecture
 

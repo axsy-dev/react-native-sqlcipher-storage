@@ -12,8 +12,9 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.JavaOnlyArray;
 import com.facebook.react.bridge.JavaOnlyMap;
-import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.BridgeReactContext;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.soloader.OpenSourceMergedSoMapping;
 import com.facebook.soloader.SoLoader;
 
 import org.junit.After;
@@ -66,8 +67,8 @@ public class LegacyParityTest
     public static void setUpClass() throws Exception
     {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        SoLoader.init(context, false); // Arguments.createMap() needs React Native's native libraries
-        plugin = new SQLitePlugin(new ReactApplicationContext(context));
+        SoLoader.init(context, OpenSourceMergedSoMapping.INSTANCE); // Arguments.createMap() needs libreactnative.so
+        plugin = new SQLitePlugin(new BridgeReactContext(context));
     }
 
     @After
