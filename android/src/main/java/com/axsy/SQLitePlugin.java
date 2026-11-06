@@ -9,12 +9,15 @@ package com.axsy;
 
 import android.annotation.SuppressLint;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabaseCorruptException;
+import android.database.sqlite.SQLiteException;
 
 
-import net.sqlcipher.database.SQLiteDatabase;
-import net.sqlcipher.database.SQLiteException;
-import net.sqlcipher.database.SQLiteStatement;
-import net.sqlcipher.database.SQLiteDatabaseHook;
+import net.zetetic.database.DatabaseErrorHandler;
+import net.zetetic.database.sqlcipher.SQLiteConnection;
+import net.zetetic.database.sqlcipher.SQLiteDatabase;
+import net.zetetic.database.sqlcipher.SQLiteStatement;
+import net.zetetic.database.sqlcipher.SQLiteDatabaseHook;
 
 import android.content.Context;
 import android.util.Base64;
@@ -23,6 +26,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.lang.IllegalArgumentException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -83,7 +87,7 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
         super(reactContext);
         this.context = reactContext.getApplicationContext();
         this.threadPool = Executors.newCachedThreadPool();
-        SQLiteDatabase.loadLibs(this.context);
+        System.loadLibrary("sqlcipher");
     }
 
     /**
@@ -442,19 +446,23 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
             {
                 hook = new SQLiteDatabaseHook()
                 {
-                    public void preKey(SQLiteDatabase database)
+                    public void preKey(SQLiteConnection connection)
                     {
                     }
 
-                    public void postKey(SQLiteDatabase database)
+                    public void postKey(SQLiteConnection connection)
                     {
-                        database.rawQuery("PRAGMA cipher_migrate", null);
+                        // cipher_migrate returns a row, so execute() would reject it.
+                        connection.executeForString("PRAGMA cipher_migrate", null, null);
                     }
                 };
 
             }
 
-            SQLiteDatabase mydb = (hook == null) ? SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null) : SQLiteDatabase.openOrCreateDatabase(dbfile.getAbsolutePath(), key, null, hook);
+            // Must stay the bare UTF-8 passphrase (no terminator, not a raw key): android-database-sqlcipher 4.4.2
+            // passed exactly these bytes to sqlite3_key, and any other encoding derives a different key for existing databases.
+            byte[] password = key == null ? null : key.getBytes(StandardCharsets.UTF_8);
+            SQLiteDatabase mydb = openLegacy(dbfile.getAbsolutePath(), password, hook);
 
             if (cbc != null) // needed for Android locking/closing workaround
                 cbc.success("database open");
@@ -473,6 +481,195 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
         {
             closeQuietly(in);
         }
+    }
+
+    // --------------------------------------------------------------------------
+    // android-database-sqlcipher 4.4.2 PARITY
+    // --------------------------------------------------------------------------
+
+    /**
+     * True while this thread runs SQLiteStatement.executeInsert()/executeUpdateDelete(). 4.13.0 reports
+     * SQLITE_CORRUPT from those to the error handler; 4.4.2's SQLiteStatement did not, so it never deleted there.
+     */
+    private static final ThreadLocal<Boolean> inStatementExecute = new ThreadLocal<Boolean>();
+
+    /**
+     * 4.4.2's net.sqlcipher.DefaultDatabaseErrorHandler: on SQLITE_CORRUPT, close the database and delete its main file
+     * (only that file, not -journal or -wal). sqlcipher-android's DefaultDatabaseErrorHandler returns without deleting on
+     * SQLCipher builds. 4.4.2 called it at open (then retried the open once), from query cursor fills and from execSQL,
+     * which ran BEGIN/COMMIT/ROLLBACK. A wrong key is SQLITE_NOTADB, not SQLITE_CORRUPT, in both versions, so it never
+     * reaches this handler.
+     */
+    static final DatabaseErrorHandler LEGACY_ERROR_HANDLER = new DatabaseErrorHandler()
+    {
+        @Override
+        public void onCorruption(SQLiteDatabase dbObj, SQLiteException exception)
+        {
+            String fileName = dbObj.getPath();
+            if (Boolean.TRUE.equals(inStatementExecute.get()))
+            {
+                FLog.e(TAG, "Corruption reported by a statement on database, not deleting: " + fileName, exception);
+                return;
+            }
+            FLog.e(TAG, "Corruption reported by sqlite on database, deleting: " + fileName, exception);
+            if (dbObj.isOpen())
+            {
+                FLog.e(TAG, "Database object for corrupted database is already open, closing");
+                try
+                {
+                    dbObj.close();
+                } catch (Exception e)
+                {
+                    FLog.e(TAG, "Exception closing Database object for corrupted database, ignored", e);
+                }
+            }
+            if (fileName == null || fileName.equalsIgnoreCase(":memory:") || fileName.trim().length() == 0)
+            {
+                return;
+            }
+            FLog.e(TAG, "deleting the database file: " + fileName);
+            try
+            {
+                new File(fileName).delete();
+            } catch (Exception e)
+            {
+                FLog.w(TAG, "delete failed: " + e.getMessage());
+            }
+        }
+    };
+
+    /**
+     * Opens the database the way 4.4.2's SQLiteDatabase.openOrCreateDatabase(path, key, null[, hook]) did.
+     * Keyed opens: sqlcipher-android's open() already keys, runs the hook, checks with "SELECT COUNT(*) FROM sqlite_schema",
+     * and on SQLITE_CORRUPT calls the error handler and opens once more, as 4.4.2 did. Unkeyed opens: 4.13.0 skips the
+     * check (SQLiteConnection.open), and 4.4.2 ran it on every open, so it is run here with the same corrupt-retry.
+     */
+    private static SQLiteDatabase openLegacy(String path, byte[] password, SQLiteDatabaseHook hook)
+    {
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(path, password, null, LEGACY_ERROR_HANDLER, hook);
+        try
+        {
+            if (password == null || password.length == 0)
+            {
+                try
+                {
+                    countSchema(db);
+                } catch (SQLiteDatabaseCorruptException ex)
+                {
+                    // Prepare-time corruption skips the handler, so call it here; after a cursor fill it already ran
+                    // and a second call deletes nothing more.
+                    LEGACY_ERROR_HANDLER.onCorruption(db, ex);
+                    db = SQLiteDatabase.openOrCreateDatabase(path, password, null, LEGACY_ERROR_HANDLER, hook);
+                    countSchema(db);
+                }
+            }
+            applyLegacyConnectionSettings(db);
+            return db;
+        } catch (RuntimeException ex)
+        {
+            try
+            {
+                db.close();
+            } catch (Exception ignored)
+            {
+                // already closed by the error handler
+            }
+            throw ex;
+        }
+    }
+
+    private static void countSchema(SQLiteDatabase db)
+    {
+        Cursor cursor = db.rawQuery("select count(*) from sqlite_master;", new String[]{});
+        try
+        {
+            if (cursor.moveToFirst())
+            {
+                cursor.getInt(0);
+            }
+        } finally
+        {
+            cursor.close();
+        }
+    }
+
+    /**
+     * sqlcipher-android's SQLiteConnection.open() runs after the hook and sets synchronous=NORMAL and
+     * journal_size_limit=10000; its nativeOpen sets a 2500 ms busy timeout and SQLiteGlobal an 8 MB soft heap limit.
+     * 4.4.2 left synchronous and journal_size_limit at the compiled defaults (FULL, and
+     * SQLITE_DEFAULT_JOURNAL_SIZE_LIMIT=1048576), and its dbopen set a 1000 ms busy timeout and a 4 MB soft heap limit on
+     * every open. Explicit values also stop SQLITE_DEFAULT_WAL_SYNCHRONOUS=1 applying if SQL switches to WAL.
+     * These hold for the database's life: without ENABLE_WRITE_AHEAD_LOGGING the pool has only the primary connection,
+     * and SQLiteConnection.reconfigure() resets the sync mode only when that flag changes, which this plugin never does.
+     */
+    private static void applyLegacyConnectionSettings(SQLiteDatabase db)
+    {
+        runPragma(db, "PRAGMA synchronous = FULL");
+        runPragma(db, "PRAGMA journal_size_limit = 1048576");
+        runPragma(db, "PRAGMA busy_timeout = 1000");
+        runPragma(db, "PRAGMA soft_heap_limit = 4194304");
+    }
+
+    /** Runs a PRAGMA through a cursor, since some return a row and execSQL() rejects those. */
+    private static void runPragma(SQLiteDatabase db, String sql)
+    {
+        Cursor cursor = db.rawQuery(sql, new String[]{});
+        try
+        {
+            cursor.moveToFirst();
+        } finally
+        {
+            cursor.close();
+        }
+    }
+
+    static final int MESSAGE_QUERY = 0;
+    static final int MESSAGE_STATEMENT = 1;
+    static final int MESSAGE_EXEC = 2;
+
+    /** sqlcipher-android's android_database_SQLiteCommon.cpp: "%s (code %d)%s%s". */
+    private static final Pattern SQLITE_CODE_MESSAGE = Pattern.compile("^(.*?) \\(code (\\d+)\\)(?:: (.*))?$", Pattern.DOTALL);
+
+    /**
+     * Rebuilds the error text 4.4.2 returned to JS. 4.13.0 gives "errmsg (code EXTENDED)" plus ": detail" when there is
+     * one. 4.4.2 gave "errmsg: , while compiling: sql" for prepare errors, "errmsg" for query step errors,
+     * "error code PRIMARY: errmsg" for SQLiteStatement step errors (executeInsert/executeUpdateDelete), and "errmsg: sql"
+     * for execSQL (BEGIN EXCLUSIVE;/COMMIT;/ROLLBACK;). Messages in any other form are returned unchanged.
+     */
+    static String legacyMessage(String message, int kind, String execSql)
+    {
+        if (message == null)
+        {
+            return null;
+        }
+        Matcher m = SQLITE_CODE_MESSAGE.matcher(message);
+        if (!m.matches())
+        {
+            return message;
+        }
+        String errmsg = m.group(1);
+        String detail = m.group(3);
+        int primaryCode;
+        try
+        {
+            primaryCode = Integer.parseInt(m.group(2)) & 0xff;
+        } catch (NumberFormatException e)
+        {
+            return message;
+        }
+        if (kind == MESSAGE_EXEC && execSql != null)
+        {
+            return errmsg + ": " + execSql;
+        }
+        if (detail != null)
+        {
+            return errmsg + ": " + detail;
+        }
+        if (kind == MESSAGE_STATEMENT)
+        {
+            return "error code " + primaryCode + ": " + errmsg;
+        }
+        return errmsg;
     }
 
     /**
@@ -654,12 +851,13 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
 
             WritableMap queryResult = null;
             String errorMessage = "unknown";
+            QueryType queryType = QueryType.other;
 
             try
             {
                 boolean needRawQuery = true;
                 query = queries[i];
-                QueryType queryType = getQueryType(query);
+                queryType = getQueryType(query);
 
                 if (queryType == QueryType.update || queryType == QueryType.delete)
                 {
@@ -674,13 +872,20 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
                             bindArgsToStatement(myStatement, queryParams[i]);
                         }
 
-                        rowsAffected = myStatement.executeUpdateDelete();
+                        inStatementExecute.set(Boolean.TRUE);
+                        try
+                        {
+                            rowsAffected = myStatement.executeUpdateDelete();
+                        } finally
+                        {
+                            inStatementExecute.remove();
+                        }
                         // Indicate valid results:
                         needRawQuery = false;
                     } catch (SQLiteException ex)
                     {
                         // Indicate problem & stop this query:
-                        errorMessage = ex.getMessage();
+                        errorMessage = legacyMessage(ex.getMessage(), MESSAGE_STATEMENT, null);
                         FLog.e(TAG, "SQLiteStatement.executeUpdateDelete() failed", ex);
                         needRawQuery = false;
                     } finally
@@ -709,7 +914,14 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
 
                     try
                     {
-                        insertId = myStatement.executeInsert();
+                        inStatementExecute.set(Boolean.TRUE);
+                        try
+                        {
+                            insertId = myStatement.executeInsert();
+                        } finally
+                        {
+                            inStatementExecute.remove();
+                        }
 
                         // statement has finished with no constraint violation:
                         queryResult = Arguments.createMap();
@@ -725,7 +937,7 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
                     {
                         // report error result with the error message
                         // could be constraint violation or some other error
-                        errorMessage = ex.getMessage();
+                        errorMessage = legacyMessage(ex.getMessage(), MESSAGE_STATEMENT, null);
                         FLog.e(TAG, "SQLiteDatabase.executeInsert() failed", ex);
                     } finally
                     {
@@ -742,7 +954,12 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
                         queryResult.putInt("rowsAffected", 0);
                     } catch (SQLiteException ex)
                     {
-                        errorMessage = ex.getMessage();
+                        // 4.4.2 ran this through execSQL, which called the error handler on SQLITE_CORRUPT.
+                        if (ex instanceof SQLiteDatabaseCorruptException)
+                        {
+                            LEGACY_ERROR_HANDLER.onCorruption(mydb, ex);
+                        }
+                        errorMessage = legacyMessage(ex.getMessage(), MESSAGE_EXEC, "BEGIN EXCLUSIVE;");
                         FLog.e(TAG, "SQLiteDatabase.beginTransaction() failed", ex);
                     }
                 } else if (queryType == QueryType.commit)
@@ -757,7 +974,12 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
                         queryResult.putInt("rowsAffected", 0);
                     } catch (SQLiteException ex)
                     {
-                        errorMessage = ex.getMessage();
+                        // 4.4.2 ran this through execSQL, which called the error handler on SQLITE_CORRUPT.
+                        if (ex instanceof SQLiteDatabaseCorruptException)
+                        {
+                            LEGACY_ERROR_HANDLER.onCorruption(mydb, ex);
+                        }
+                        errorMessage = legacyMessage(ex.getMessage(), MESSAGE_EXEC, "COMMIT;");
                         FLog.e(TAG, "SQLiteDatabase.setTransactionSuccessful/endTransaction() failed", ex);
                     }
                 } else if (queryType == QueryType.rollback)
@@ -766,14 +988,20 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
                     try
                     {
                         mydb.endTransaction();
-
-                        queryResult = Arguments.createMap();
-                        queryResult.putInt("rowsAffected", 0);
                     } catch (SQLiteException ex)
                     {
-                        errorMessage = ex.getMessage();
-                        FLog.e(TAG, "SQLiteDatabase.endTransaction() failed", ex);
+                        // 4.4.2's endTransaction() ran ROLLBACK through execSQL (error handler on SQLITE_CORRUPT) and
+                        // then ignored any SQLException from it, e.g. after SQLite had already rolled back. The session
+                        // has popped the transaction before ROLLBACK runs, so ignoring it here leaves the same state.
+                        if (ex instanceof SQLiteDatabaseCorruptException)
+                        {
+                            LEGACY_ERROR_HANDLER.onCorruption(mydb, ex);
+                        }
+                        FLog.d(TAG, "exception during rollback, maybe the DB previously performed an auto-rollback");
                     }
+
+                    queryResult = Arguments.createMap();
+                    queryResult.putInt("rowsAffected", 0);
                 }
 
                 // raw query for other statements:
@@ -783,7 +1011,9 @@ public class SQLitePlugin extends ReactContextBaseJavaModule
                 }
             } catch (Exception ex)
             {
-                errorMessage = ex.getMessage();
+                boolean statementPath = queryType == QueryType.update || queryType == QueryType.delete
+                        || (queryType == QueryType.insert && queryParams != null);
+                errorMessage = legacyMessage(ex.getMessage(), statementPath ? MESSAGE_STATEMENT : MESSAGE_QUERY, null);
                 FLog.e(TAG, "SQLitePlugin.executeSql[Batch](): failed", ex);
             }
 
