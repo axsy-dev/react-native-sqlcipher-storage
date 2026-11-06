@@ -4,9 +4,9 @@ import {
   Text,
   View,
   Button,
-  FlatList,
-  SafeAreaView
+  FlatList
 } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import SQLite from "react-native-sqlcipher-storage";
 import type { Database, Transaction } from "react-native-sqlcipher-storage";
@@ -367,20 +367,22 @@ export default function App() {
   }, [closeDatabase]);
 
   return (
-    <SafeAreaView style={styles.mainContainer}>
-      <View>
-        <Button title="Run tests" onPress={runDemo} />
-        <Button title="Close DB" onPress={closeDatabase} />
-        <Button title="Delete DB" onPress={deleteDatabase} />
-        <Button title="Bad Password (should error)" onPress={runBadPwd} />
-        <Button title="Migrate Test" onPress={migrateDb} />
-      </View>
-      <FlatList
-        data={state.progress}
-        renderItem={renderProgressEntry}
-        style={listStyles.liContainer}
-      />
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.mainContainer}>
+        <View>
+          <Button title="Run tests" onPress={runDemo} />
+          <Button title="Close DB" onPress={closeDatabase} />
+          <Button title="Delete DB" onPress={deleteDatabase} />
+          <Button title="Bad Password (should error)" onPress={runBadPwd} />
+          <Button title="Migrate Test" onPress={migrateDb} />
+        </View>
+        <FlatList
+          data={state.progress}
+          renderItem={renderProgressEntry}
+          style={listStyles.liContainer}
+        />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

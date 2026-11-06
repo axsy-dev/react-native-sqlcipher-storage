@@ -6,4 +6,24 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'Example.xcworkspace'
 
-use_test_app! :hermes_enabled => true, :fabric_enabled => false
+# - SQLCipher's podspec targets iOS 12, which current Xcode no longer supports.
+# - Some pods (e.g. react-native-safe-area-context) need the ReactCodegen
+#   headers on their search path under RN 0.81 (same fix as react-app).
+codegen_header_path = '"${PODS_ROOT}/Headers/Public/ReactCodegen"'
+fix_pod_settings = lambda do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 15.1
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+      end
+      paths = config.build_settings['HEADER_SEARCH_PATHS'] || '$(inherited)'
+      unless paths.include?('ReactCodegen')
+        config.build_settings['HEADER_SEARCH_PATHS'] = "#{paths} #{codegen_header_path}"
+      end
+    end
+  end
+end
+
+use_test_app! :hermes_enabled => true,
+              :fabric_enabled => true,
+              :post_install => fix_pod_settings
