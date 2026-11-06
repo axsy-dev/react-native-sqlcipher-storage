@@ -26,10 +26,7 @@ export interface Transaction {
 }
 
 export interface Database {
-  executeSql(
-    sql: string,
-    params?: SQLParams,
-  ): Promise<[Transaction, SuccessResult]>;
+  executeSql(sql: string, params?: SQLParams): Promise<[SuccessResult]>;
   transaction(callback: (tx: Transaction) => void): Promise<Transaction>;
   readTransaction(callback: (tx: Transaction) => void): Promise<Transaction>;
   close(): Promise<void>;
