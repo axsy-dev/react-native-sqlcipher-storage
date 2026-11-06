@@ -48,6 +48,7 @@ android {
         targetSdkVersion safeExtGet('targetSdkVersion', DEFAULT_TARGET_SDK_VERSION)
         versionCode 1
         versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     lintOptions {
         abortOnError false
@@ -76,6 +77,10 @@ dependencies {
     implementation 'net.zetetic:sqlcipher-android:4.13.0@aar'
     // @aar drops the POM's transitive runtime dependency; its classes implement these interfaces.
     implementation "androidx.sqlite:sqlite:2.2.0"
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
 }
 
 
